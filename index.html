@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mafiaz Portal</title>
+<title>Portal</title>
 <link rel="icon" id="favicon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
@@ -25,6 +25,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .brand b{letter-spacing:3px;text-transform:uppercase;font-size:15px}
 .brand small{display:block;color:var(--muted);font-size:11px;letter-spacing:.5px}
 .logo{width:42px;height:42px;border-radius:10px;object-fit:cover;display:block;border:1px solid rgba(212,162,76,.35)}
+span.logo{display:grid;place-items:center;font-weight:800;font-size:18px;color:#111;background:linear-gradient(135deg,var(--gold2),var(--gold))}
 .auth-card .logo{width:64px;height:64px;border-radius:14px}
 .who{display:flex;gap:8px;align-items:center}
 .who span{color:var(--muted);margin-right:6px}
@@ -129,11 +130,33 @@ tr.tot td{font-weight:700;background:var(--panel2)}
 .docbox .agency-sig{font-family:Inter;font-size:14px;font-weight:700;color:#111;padding-top:14px}
 .docbox .sig-line{border-top:1px solid #333}
 .docbox .sig-cap{font-size:11px;color:#666;margin-top:4px}
+.sigpad{display:block;width:100%;height:170px;background:#fbfaf7;border:1px dashed rgba(212,162,76,.6);border-radius:12px;touch-action:none;cursor:crosshair;margin-top:12px}
+#sigMode{margin-bottom:4px}
+.docbox .sig-img{height:60px;max-width:280px;display:block}
 .sigprev{font-family:'Dancing Script',cursive;font-size:30px;color:var(--gold2);min-height:44px;border-bottom:1px solid var(--line);margin:4px 0 14px;padding:0 4px}
 .agree{display:flex;align-items:flex-start;color:var(--text);font-size:13px;margin:14px 0}
 /* modal & toast */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;z-index:50;padding:16px}
 .modal-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
+.modal-card.wide{max-width:780px}
+.hb{max-height:60vh;overflow:auto;padding-right:6px}
+.hb-sec{padding:14px 0;border-bottom:1px solid var(--line)}
+.hb-sec:last-child{border-bottom:0}
+.hb-sec h4{margin:0 0 6px;font-size:14px;color:var(--gold2)}
+.hb-sec p{margin:6px 0;line-height:1.6}
+.hb-sec ul{margin:6px 0;padding-left:20px;line-height:1.65}
+.hb-edit{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:var(--panel2)}
+.hb-edit summary{cursor:pointer;display:flex;gap:10px;align-items:center;justify-content:space-between;list-style:none}
+.hb-edit summary::-webkit-details-marker{display:none}
+.hb-edit .num{width:24px;height:24px;border-radius:50%;display:inline-grid;place-items:center;background:var(--gold);color:#111;font-weight:800;font-size:12px;margin-right:8px}
+.warn{border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:12px;padding:14px;background:var(--panel2);margin-bottom:10px}
+.warn.lv3,.warn.lv4{border-left-color:var(--red)}
+.warn .meta{color:var(--muted);font-size:12px;margin-top:4px}
+.schedrow{display:grid;grid-template-columns:70px 90px 1fr 1fr;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
+.schedrow input[type=time]{margin:0}
+.schedrow label{margin:0}
+.daycell{font-size:12px;white-space:nowrap}
+.note{background:rgba(212,162,76,.08);border:1px solid rgba(212,162,76,.3);border-radius:12px;padding:12px 14px;margin-bottom:16px}
 .modal-card h3{margin:0 0 14px}
 .mrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line)}
 .mrow b{font-variant-numeric:tabular-nums}
@@ -175,8 +198,33 @@ tr.tot td{font-weight:700;background:var(--panel2)}
    PASTE YOUR APPS SCRIPT WEB APP URL HERE (ends in /exec)
    ============================================================ */
 const API_URL = 'https://script.google.com/macros/s/AKfycbyb8UMHiYOs9ZflwAoFM4HiLHTA5bZOkMpJtFRKIs1b8qGMF6sXlXxMhMLumcAzVC3F/exec';
-const AGENCY = 'Mafiaz';
-const LOGO = 'data:image/jpeg;base64,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';
+/* Brand (name, logo, color, rates) comes from CONFIG in Code.gs — nothing to edit here. */
+let AGENCY = '', LOGO = '', W = 'Agent';
+let B = { agency: '', worker: 'Agent', accent: '#d4a24c', logo: '', hourlyRate: 3, commissionRate: 0.01, employeeShare: 0.7, timezoneLabel: '' };
+const SP = () => Math.round((Number(B.employeeShare) || 0.7) * 100);   // agent share %
+const AP = () => 100 - SP();                                           // agency share %
+function logoHtml() { return LOGO ? `<img class="logo" src="${LOGO}" alt="">` : `<span class="logo">${esc((AGENCY || '?').charAt(0))}</span>`; }
+function lighten(hex, p) {
+  const n = parseInt(hex.slice(1), 16);
+  return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v + (255 - v) * p).toString(16).padStart(2, '0')).join('');
+}
+function applyBrand(b) {
+  B = Object.assign(B, b || {});
+  AGENCY = B.agency || 'Portal'; LOGO = B.logo || ''; W = B.worker || 'Agent';
+  document.title = AGENCY + ' Portal';
+  if (/^#[0-9a-f]{6}$/i.test(B.accent || '')) {
+    document.documentElement.style.setProperty('--gold', B.accent);
+    document.documentElement.style.setProperty('--gold2', lighten(B.accent, .25));
+  }
+  try { if (LOGO) document.getElementById('favicon').href = LOGO; } catch (e) {}
+}
+async function loadBranding() {
+  let cached = null;
+  try { cached = JSON.parse(store.get('mz_brand') || 'null'); } catch (e) {}
+  if (cached) applyBrand(cached);
+  const fresh = api('branding').then(b => { store.set('mz_brand', JSON.stringify(b)); applyBrand(b); return b; }).catch(() => null);
+  if (!cached) await fresh;
+}
 
 /* ---------------- state & helpers ---------------- */
 const S = { token: null, role: null, name: '', data: null, tab: null, charts: {}, emps: null, dashDate: '', payDate: '', reqFilter: 'Pending', days: 30, prefill: null };
@@ -205,6 +253,7 @@ async function api(action, payload) {
   if (!j.ok) {
     if (j.error === 'SESSION_EXPIRED') { logout(true); throw new Error('Your session expired. Please log in again.'); }
     if (j.error === 'ONBOARDING_REQUIRED') { boot(); throw new Error('Please finish your onboarding first.'); }
+    if (j.error === 'PASSWORD_CHANGE_REQUIRED') { boot(); throw new Error('Please set your own password first.'); }
     throw new Error(j.error);
   }
   return j.data;
@@ -226,7 +275,7 @@ async function run(btn, fn) {
   finally { if (btn && document.body.contains(btn)) { btn.disabled = false; btn.innerHTML = label; } }
 }
 
-function openModal(html) { $('#modalBody').innerHTML = html; $('#modal').classList.remove('hidden'); }
+function openModal(html, wide) { $('#modalBody').innerHTML = html; $('#modalBody').classList.toggle('wide', !!wide); $('#modal').classList.remove('hidden'); }
 function closeModal() { $('#modal').classList.add('hidden'); $('#modalBody').innerHTML = ''; }
 
 function downloadB64(f) {
@@ -246,6 +295,51 @@ setInterval(() => {
   document.querySelectorAll('[data-since]').forEach(el => { el.textContent = clockStr(Date.now() - Number(el.dataset.since)); });
   document.querySelectorAll('[data-live]').forEach(el => { el.textContent = hm(Number(el.dataset.base || 0) + (Date.now() - Number(el.dataset.live)) / 3.6e6); });
 }, 1000);
+
+/* Signature pad: draw with mouse, pen or finger */
+function sigPad(canvas) {
+  const ctx = canvas.getContext('2d');
+  let drawing = false, empty = true, last = null;
+  function resize() {
+    const r = canvas.getBoundingClientRect();
+    if (!r.width) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const keep = empty ? null : canvas.toDataURL();
+    canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1b2a6b';
+    if (keep) { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0, r.width, r.height); img.src = keep; }
+  }
+  const pos = e => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  canvas.addEventListener('pointerdown', e => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); drawing = true; last = pos(e); ctx.beginPath(); ctx.arc(last.x, last.y, 1.1, 0, Math.PI * 2); ctx.fillStyle = '#1b2a6b'; ctx.fill(); empty = false; });
+  canvas.addEventListener('pointermove', e => { if (!drawing) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke(); last = p; });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => canvas.addEventListener(t, () => { drawing = false; }));
+  window.addEventListener('resize', resize);
+  return {
+    resize: resize,
+    clear() { ctx.clearRect(0, 0, canvas.width, canvas.height); empty = true; },
+    isEmpty: () => empty,
+    toDataURL: () => canvas.toDataURL('image/png')
+  };
+}
+
+function stepsHtml(n) {
+  return '<div class="steps">' + ['Sign offer letter', 'HR handbook', 'Set password'].map((t, i) => `<span class="${i + 1 === n ? 'on' : ''}">${i + 1} · ${t}</span>`).join('') + '</div>';
+}
+function attPill(a) {
+  if (!a || !a.status) return '<span class="muted">—</span>';
+  const cls = a.flag === 'noshow' ? 'none' : a.flag === 'late' ? 'off' : a.flag === 'ok' ? 'on' : a.flag === 'dayoff' ? 'out' : 'Cancelled';
+  return `<span class="st ${cls}">${esc(a.status)}</span>`;
+}
+function t12(hhmm) {
+  if (!hhmm) return '';
+  const [h, m] = hhmm.split(':').map(Number);
+  return ((h % 12) || 12) + (m ? ':' + String(m).padStart(2, '0') : '') + (h < 12 ? 'am' : 'pm');
+}
+function schedLabel(v) { if (!v) return ''; const [a, b] = v.split('-'); return t12(a) + '–' + t12(b); }
+function handbookSections(h) {
+  return h.sections.map(x => `<div class="hb-sec"><h4>${x.title}</h4>${x.html}</div>`).join('');
+}
 
 function chart(id, cfg) {
   if (!window.Chart) return;
@@ -277,11 +371,19 @@ async function boot() {
     }
   }
   if (!S.token) return renderLogin();
-  if (S.role === 'admin') return showAdmin();
+  if (S.role === 'admin') {
+    try {
+      const me = await api('adminMe');
+      S.name = me.name; S.owner = me.owner; S.me = me;
+      if (me.mustChangePassword) return renderSetPassword(true);
+      return showAdmin();
+    } catch (e) { if (S.token) renderLogin(e.message); return; }
+  }
   try {
     const me = await api('me');
     S.name = me.Name;
     if (!me.AgreementSigned) return renderAgreement();
+    if (!me.HandbookAcked) return renderHandbookAck();
     if (me.MustChangePassword) return renderSetPassword();
     showEmp();
   } catch (e) { if (S.token) renderLogin(e.message); }
@@ -290,17 +392,22 @@ async function boot() {
 function renderLogin(msg, agentView) {
   $('#app').innerHTML = `
   <div class="auth"><div class="auth-card">
-    <div class="brand"><img class="logo" src="${LOGO}" alt="Mafiaz logo"><div><b>${AGENCY}</b><small>Payroll & Employee Portal</small></div></div>
+    <div class="brand">${logoHtml()}<div><b>${AGENCY}</b><small>Payroll & ${esc(W)} Portal</small></div></div>
     <h2>${agentView ? 'Agent login' : 'Welcome back'}</h2><p class="muted" style="margin:0 0 18px">Log in with the email and password sent to you.</p>
     ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
     <form id="loginForm">
-      <label>Email<input name="email" type="email" autocomplete="username" required></label>
-      <label>Password<input name="password" id="loginPw" type="password" autocomplete="current-password" required></label>
+      <label>Email<input name="email" id="loginEmail" type="email" autocomplete="${agentView ? 'off' : 'username'}" required></label>
+      <label>Password<input name="password" id="loginPw" type="password" autocomplete="${agentView ? 'new-password' : 'current-password'}" required></label>
       <label class="agree" style="margin:-4px 0 6px"><input type="checkbox" onchange="$('#loginPw').type=this.checked?'text':'password'"> Show password</label>
       <button class="btn big">Log in</button>
     </form>
     <p class="muted small" style="margin-top:16px">Forgot your password? Ask your admin to resend your login.</p>
   </div></div>`;
+  if (agentView) {
+    // Agent link: wipe anything the browser auto-filled from a saved (admin) login
+    const wipe = () => { if (document.activeElement !== $('#loginEmail') && document.activeElement !== $('#loginPw')) { $('#loginEmail').value = ''; $('#loginPw').value = ''; } };
+    [50, 400, 1200].forEach(ms => setTimeout(() => { if ($('#loginEmail')) wipe(); }, ms));
+  }
   $('#loginForm').onsubmit = e => {
     e.preventDefault();
     const f = fd(e.target);
@@ -316,14 +423,14 @@ function renderLogin(msg, agentView) {
 function logout(silent) {
   if (S.token && !silent) api('logout').catch(() => {});
   store.del('mz_token'); store.del('mz_role'); store.del('mz_name');
-  S.token = null; S.role = null; S.data = null; S.emps = null; S.tab = null;
+  S.token = null; S.role = null; S.data = null; S.emps = null; S.tab = null; S.owner = false; S.me = null;
   renderLogin();
 }
 
 /* ---------------- onboarding ---------------- */
 async function renderAgreement() {
-  $('#app').innerHTML = `<div class="onb"><div class="brand" style="margin-bottom:18px"><img class="logo" src="${LOGO}" alt="Mafiaz logo"><div><b>${AGENCY}</b><small>Welcome aboard</small></div></div>
-    <div class="steps"><span class="on">1 · Sign offer letter</span><span>2 · Set password</span><span>3 · Start working</span></div>
+  $('#app').innerHTML = `<div class="onb"><div class="brand" style="margin-bottom:18px">${logoHtml()}<div><b>${AGENCY}</b><small>Welcome aboard</small></div></div>
+    ${stepsHtml(1)}
     <div id="agWrap" class="loading"><span class="spin"></span></div></div>`;
   try {
     const a = await api('getAgreement');
@@ -332,26 +439,76 @@ async function renderAgreement() {
       <div class="card">
         <div class="docbox">${a.html}</div>
         <label class="agree"><input type="checkbox" id="agChk"> I have read and understood this offer letter, and I accept its terms.</label>
-        <label>Type your full name to sign (${esc(a.name)})<input id="agName" autocomplete="off" placeholder="${esc(a.name)}"></label>
-        <div class="sigprev" id="agPrev"></div>
+        <label>Your full name, exactly as shown (${esc(a.name)})<input id="agName" autocomplete="off" placeholder="${esc(a.name)}"></label>
+        <div class="muted small" style="margin:4px 0 8px">How would you like to sign?</div>
+        <div class="seg" id="sigMode"><button type="button" class="on" data-m="type">Type</button><button type="button" data-m="draw">Draw</button></div>
+        <div id="sigTypeBox"><div class="sigprev" id="agPrev"></div></div>
+        <div id="sigDrawBox" class="hidden">
+          <canvas id="sigPad" class="sigpad"></canvas>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 14px">
+            <span class="muted small">Sign inside the box with your mouse or finger.</span>
+            <button type="button" class="ghost sm" id="sigClear">Clear</button>
+          </div>
+        </div>
         <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap">
-          <button class="ghost" onclick="logout()">Log out</button>
+          <button type="button" class="ghost" id="agCancel">Cancel</button>
           <button class="btn" id="agBtn">Sign &amp; Accept</button>
         </div>
       </div>`;
+    let mode = 'type';
+    const pad = sigPad($('#sigPad'));
     $('#agName').oninput = e => { $('#agPrev').textContent = e.target.value; };
+    document.querySelectorAll('#sigMode button').forEach(b => b.onclick = () => {
+      mode = b.dataset.m;
+      document.querySelectorAll('#sigMode button').forEach(x => x.classList.toggle('on', x === b));
+      $('#sigTypeBox').classList.toggle('hidden', mode !== 'type');
+      $('#sigDrawBox').classList.toggle('hidden', mode !== 'draw');
+      if (mode === 'draw') pad.resize();
+    });
+    $('#sigClear').onclick = () => pad.clear();
+    $('#agCancel').onclick = () => {
+      if (confirm('Cancel signing? You will be logged out. You can sign later with the same login.')) logout();
+    };
     $('#agBtn').onclick = e => run(e.currentTarget, async () => {
-      await api('signAgreement', { agree: $('#agChk').checked, signedName: $('#agName').value });
+      if (mode === 'draw' && pad.isEmpty()) throw new Error('Please draw your signature, or choose Type.');
+      await api('signAgreement', {
+        agree: $('#agChk').checked, signedName: $('#agName').value,
+        signatureType: mode, signatureImage: mode === 'draw' ? pad.toDataURL() : ''
+      });
       toast('Offer letter signed. A copy was emailed to you.');
       boot();
     });
   } catch (e) { $('#agWrap').innerHTML = errBox(e.message); }
 }
 
-function renderSetPassword() {
+async function renderHandbookAck() {
+  $('#app').innerHTML = `<div class="onb"><div class="brand" style="margin-bottom:18px">${logoHtml()}<div><b>${AGENCY}</b><small>Welcome aboard</small></div></div>
+    ${stepsHtml(2)}
+    <div id="hbWrap" class="loading"><span class="spin"></span></div></div>`;
+  try {
+    const h = await api('getHandbook');
+    $('#hbWrap').className = '';
+    $('#hbWrap').innerHTML = `<div class="card">
+      <h3>${esc(AGENCY)} HR Handbook</h3>
+      <p class="muted" style="margin-top:-6px">These are the rules every ${esc(W.toLowerCase())} follows. Please read them before you start.</p>
+      <div class="hb">${handbookSections(h)}</div>
+      <label class="agree"><input type="checkbox" id="hbChk"> I have read the HR Handbook and agree to follow it.</label>
+      <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap">
+        <button class="ghost" onclick="logout()">Log out</button>
+        <button class="btn" id="hbBtn">Acknowledge &amp; continue</button>
+      </div></div>`;
+    $('#hbBtn').onclick = e => run(e.currentTarget, async () => {
+      await api('ackHandbook', { agree: $('#hbChk').checked });
+      toast('Thank you. Handbook acknowledged.');
+      boot();
+    });
+  } catch (e) { $('#hbWrap').innerHTML = errBox(e.message); }
+}
+
+function renderSetPassword(isAdmin) {
   $('#app').innerHTML = `<div class="auth"><div class="auth-card">
-    <div class="brand"><img class="logo" src="${LOGO}" alt="Mafiaz logo"><div><b>${AGENCY}</b><small>Welcome aboard</small></div></div>
-    <div class="steps"><span>1 · Signed</span><span class="on">2 · Set password</span></div>
+    <div class="brand">${logoHtml()}<div><b>${AGENCY}</b><small>Welcome aboard</small></div></div>
+    ${isAdmin ? '' : stepsHtml(3)}
     <h2>Create your password</h2><p class="muted" style="margin:0 0 16px">At least 8 characters. Don't share it with anyone.</p>
     <form id="pwForm">
       <label>New password<input name="p1" type="password" autocomplete="new-password" minlength="8" required></label>
@@ -363,7 +520,7 @@ function renderSetPassword() {
     const f = fd(e.target);
     run(e.target.querySelector('button'), async () => {
       if (f.p1 !== f.p2) throw new Error('Passwords do not match.');
-      await api('changePassword', { newPassword: f.p1 });
+      await api(isAdmin ? 'adminChangePassword' : 'changePassword', { newPassword: f.p1 });
       toast('Password saved. You are all set!');
       boot();
     });
@@ -374,8 +531,8 @@ function renderSetPassword() {
 function shell(tabs, sub) {
   $('#app').innerHTML = `
   <header class="top">
-    <div class="brand"><img class="logo" src="${LOGO}" alt="Mafiaz logo"><div><b>${AGENCY}</b><small>${sub}</small></div></div>
-    <div class="who"><span>${esc(S.name)}</span><button class="ghost sm" onclick="openChangePw()">Password</button><button class="ghost sm" onclick="logout()">Log out</button></div>
+    <div class="brand">${logoHtml()}<div><b>${AGENCY}</b><small>${sub}</small></div></div>
+    <div class="who"><span>${esc(S.name)}${S.role === 'admin' ? ` <span class="pill">${S.owner ? 'Owner' : 'Admin'}</span>` : ''}</span><button class="ghost sm" onclick="openChangePw()">Password</button><button class="ghost sm" onclick="logout()">Log out</button></div>
   </header>
   <nav class="tabs" id="tabs">${tabs.map(t => `<button data-t="${t[0]}" onclick="go('${t[0]}')">${t[1]}<span class="badge" id="b_${t[0]}"></span></button>`).join('')}</nav>
   <main id="view"></main>`;
@@ -410,13 +567,13 @@ function openChangePw() {
    EMPLOYEE PORTAL
    ============================================================ */
 function showEmp() {
-  shell([['today', 'Today'], ['week', 'My Week'], ['requests', 'Requests'], ['payslips', 'Payslips']], 'Employee Portal');
+  shell([['today', 'Today'], ['week', 'My Week'], ['requests', 'Requests'], ['payslips', 'Payslips'], ['hr', 'HR']], esc(W) + ' Portal');
   S.data = null;
   go(S.tab && EMP[S.tab] ? S.tab : 'today');
 }
 async function empRefresh() {
   if (!S.data) loading();
-  try { S.data = await api('empDashboard'); EMP[S.tab](); }
+  try { S.data = await api('empDashboard'); badge('hr', S.data.hrAlerts); EMP[S.tab](); }
   catch (e) { $('#view').innerHTML = errBox(e.message); }
 }
 
@@ -429,6 +586,8 @@ const EMP = {
     <div class="grid2">
       <div class="card clock ${o ? 'live' : ''}">
         <div class="muted">${esc(d.todayLabel)}</div>
+        ${d.todaySched ? `<div class="small">Today's shift: <b>${esc(d.todaySched)}</b></div>` : '<div class="small muted">No shift scheduled today</div>'}
+        ${d.todayAtt && (d.todayAtt.flag === 'late' || d.todayAtt.flag === 'noshow') ? `<div>${attPill(d.todayAtt)}</div>` : ''}
         ${o ? `
           <div class="status on">● On duty since ${esc(o.since)}</div>
           <div class="timer" data-since="${o.clockInAt}">${clockStr(Date.now() - o.clockInAt)}</div>
@@ -488,9 +647,9 @@ const EMP = {
       ${stat('Expected salary', money(w.expectedPay), 'Final amount is on your payslip', 'gold')}
     </div>
     <div class="card"><h3>Daily breakdown</h3>
-      <div class="tw"><table><thead><tr><th>Day</th><th class="n">Hours</th><th class="n">Sales #</th><th class="n">Sales</th></tr></thead><tbody>
-      ${w.days.map(x => `<tr><td>${esc(x.label)}${x.date === S.data.today ? ' <span class="pill">today</span>' : ''}</td><td class="n">${hm(x.hours)}</td><td class="n">${x.count}</td><td class="n">${money(x.sales)}</td></tr>`).join('')}
-      <tr class="tot"><td>Total</td><td class="n">${hm(w.hours)}</td><td class="n">${w.days.reduce((a, x) => a + x.count, 0)}</td><td class="n">${money(w.sales)}</td></tr>
+      <div class="tw"><table><thead><tr><th>Day</th><th>Schedule</th><th>Attendance</th><th class="n">Hours</th><th class="n">Sales #</th><th class="n">Sales</th></tr></thead><tbody>
+      ${w.days.map(x => `<tr><td>${esc(x.label)}${x.date === S.data.today ? ' <span class="pill">today</span>' : ''}</td><td class="daycell">${esc(x.att.sched || 'Off')}</td><td>${attPill(x.att)}</td><td class="n">${hm(x.hours)}</td><td class="n">${x.count}</td><td class="n">${money(x.sales)}</td></tr>`).join('')}
+      <tr class="tot"><td colspan="3">Total</td><td class="n">${hm(w.hours)}</td><td class="n">${w.days.reduce((a, x) => a + x.count, 0)}</td><td class="n">${money(w.sales)}</td></tr>
       </tbody></table></div>
       <p class="muted small" style="margin-bottom:0">Expected salary is based on completed shifts and recorded sales. Pending time corrections are added once approved.</p>
     </div>`;
@@ -541,6 +700,31 @@ const EMP = {
     if (pre) $('#teForm').scrollIntoView({ behavior: 'smooth' });
   },
 
+  async hr() {
+    const d = S.data, hb = d.handbook, ws = d.warnings;
+    $('#view').innerHTML = `
+      ${ws.length ? `<div class="card"><h3>Notices on your file</h3>${ws.map(w => `
+        <div class="warn lv${['Verbal warning', 'Written warning', 'Final warning', 'Termination'].indexOf(w.level) + 1}">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+            <div><b>${esc(w.level)}</b> · ${esc(w.category)} <div class="meta">${esc(w.dateLabel)}${w.expiresLabel ? ' · active until ' + esc(w.expiresLabel) : ''}</div></div>
+            <div><span class="st ${w.status === 'Active' ? 'off' : 'Cancelled'}">${esc(w.status)}</span></div>
+          </div>
+          <div style="margin-top:8px;white-space:pre-wrap">${esc(w.details)}</div>
+          <div style="margin-top:10px">${w.ack ? `<span class="muted small">Acknowledged ${esc(w.ack)}</span>`
+            : w.status === 'Active' ? `<button class="btn sm" onclick="run(this,async()=>{await api('ackWarning',{id:'${w.id}'});toast('Notice acknowledged.');await empRefresh();})">I acknowledge this notice</button>` : ''}</div>
+        </div>`).join('')}</div>` : ''}
+      <div class="card"><h3>HR Handbook ${hb.current ? `<span class="st Approved">Acknowledged ${esc(hb.ackAt)}</span>` : '<span class="st Pending">Updated — please read and acknowledge</span>'}</h3>
+        <div id="hbBody" class="loading"><span class="spin"></span></div>
+      </div>`;
+    try {
+      const h = await api('getHandbook');
+      $('#hbBody').className = '';
+      $('#hbBody').innerHTML = `<div class="hb">${handbookSections(h)}</div>
+        ${hb.current ? '' : `<label class="agree"><input type="checkbox" id="hbChk"> I have read the updated HR Handbook and agree to follow it.</label>
+        <button class="btn" onclick="run(this,async()=>{await api('ackHandbook',{agree:$('#hbChk').checked});toast('Handbook acknowledged.');await empRefresh();})">Acknowledge</button>`}`;
+    } catch (e) { $('#hbBody').innerHTML = errBox(e.message); }
+  },
+
   payslips() {
     const p = S.data.payslips;
     $('#view').innerHTML = `<div class="card"><h3>My payslips</h3>
@@ -566,7 +750,7 @@ function reqCard(r, admin) {
   }
   return `<div class="req"><div style="flex:1;min-width:240px">
       <div>${admin ? `<b>${esc(r.name)}</b> · ` : ''}${title}</div>
-      <div class="meta">Sent ${esc(r.created)}${r.account ? ' · ' + esc(r.account) : ''}${r.reviewed ? ' · Reviewed ' + esc(r.reviewed) : ''}</div>
+      <div class="meta">Sent ${esc(r.created)}${r.account ? ' · ' + esc(r.account) : ''}${r.reviewed ? ' · Reviewed ' + esc(r.reviewed) + (admin && r.reviewedBy ? ' by ' + esc(r.reviewedBy) : '') : ''}</div>
       <div class="reason">${esc(r.reason)}</div>
       ${r.adminNote ? `<div class="meta">Admin note: ${esc(r.adminNote)}</div>` : ''}
     </div><div class="acts"><span class="st ${esc(r.status)}">${esc(r.status)}</span>${acts}</div></div>`;
@@ -576,27 +760,31 @@ function reqCard(r, admin) {
    ADMIN BOARD
    ============================================================ */
 function showAdmin() {
-  shell([['dash', 'Dashboard'], ['payroll', 'Payroll'], ['requests', 'Requests'], ['employees', 'Employees'], ['kpi', 'KPI'], ['issues', 'Issues'], ['analytics', 'Analytics']], 'Admin Board');
+  shell([['dash', 'Dashboard'], ['payroll', 'Payroll'], ['requests', 'Requests'], ['employees', esc(W) + 's'], ['kpi', 'KPI'], ['issues', 'Issues'], ['analytics', 'Analytics'], ['hr', 'HR'], ['admins', 'Admins']], 'Admin Board');
   go(S.tab && ADMIN[S.tab] ? S.tab : 'dash');
 }
 async function loadEmps(force) { if (!S.emps || force) S.emps = await api('listEmployees'); return S.emps; }
 const empOptions = (sel) => (S.emps || []).filter(e => e.status === 'Active').map(e => `<option value="${e.empId}" ${sel === e.empId ? 'selected' : ''}>${esc(e.name)}</option>`).join('');
 
 function payRuleCard() {
+  const rate = Number(B.hourlyRate) || 0, comm = Number(B.commissionRate) || 0, sp = SP(), ap = AP();
+  const cp = +(comm * 100).toFixed(2), exH = 40, exS = 5000;
+  const exHourly = exH * rate, exComm = exS * comm, exTot = exHourly + exComm, exAgent = exTot * sp / 100;
+  const w = esc(W.toLowerCase());
   return `<details class="card rule" open>
-    <summary><b>How agent salary is computed</b> <span class="muted small">(every weekly cutoff, Mon–Sun, Philippine time)</span></summary>
+    <summary><b>How ${w} salary is computed</b> <span class="muted small">(every weekly cutoff, Mon–Sun${B.timezoneLabel ? ', ' + esc(B.timezoneLabel) : ''})</span></summary>
     <div class="rule-grid">
-      <div class="rule-step"><span class="num">1</span><div><b>Hourly pay</b><div class="muted">Total hours × $3</div></div></div>
-      <div class="rule-step"><span class="num">2</span><div><b>Commission</b><div class="muted">1% of total sales</div></div></div>
+      <div class="rule-step"><span class="num">1</span><div><b>Hourly pay</b><div class="muted">Total hours × ${money(rate)}</div></div></div>
+      <div class="rule-step"><span class="num">2</span><div><b>Commission</b><div class="muted">${cp}% of total sales</div></div></div>
       <div class="rule-step"><span class="num">3</span><div><b>Total (100%)</b><div class="muted">Hourly pay + commission</div></div></div>
-      <div class="rule-step"><span class="num">4</span><div><b>Split</b><div class="muted">70% goes to the agent · 30% goes to Mafiaz</div></div></div>
+      <div class="rule-step"><span class="num">4</span><div><b>Split</b><div class="muted">${sp}% goes to the ${w} · ${ap}% goes to ${esc(AGENCY)}</div></div></div>
     </div>
     <div class="rule-ex">
-      <b>Example:</b> 40 hours and $5,000 in sales →
-      Hourly 40 × $3 = <b>$120</b> · Commission 1% × $5,000 = <b>$50</b> · Total <b>$170</b> →
-      Agent salary (70%) <b class="gold-t">$119</b> · Mafiaz cut (30%) <b class="gold-t">$51</b>
+      <b>Example:</b> ${exH} hours and ${money(exS)} in sales →
+      Hourly ${exH} × ${money(rate)} = <b>${money(exHourly)}</b> · Commission ${cp}% × ${money(exS)} = <b>${money(exComm)}</b> · Total <b>${money(exTot)}</b> →
+      ${esc(W)} salary (${sp}%) <b class="gold-t">${money(exAgent)}</b> · ${esc(AGENCY)} cut (${ap}%) <b class="gold-t">${money(exTot - exAgent)}</b>
     </div>
-    <p class="muted small" style="margin:10px 0 0">Agents only see their 70% salary in their portal and on their payslip. If an agent has a different rate, it shows under their name in the table.</p>
+    <p class="muted small" style="margin:10px 0 0">${esc(W)}s only see their ${sp}% salary in their portal and on their payslip. If one of your ${w}s has a different rate, it shows under their name in the table.</p>
   </details>`;
 }
 
@@ -617,26 +805,28 @@ const ADMIN = {
       <div class="stats">
         ${stat('On duty', t.onDuty, 'Clocked in now')}
         ${stat('Not on duty', t.notOnDuty, 'Out, absent or day off')}
+        ${stat('Late ' + (d.isToday ? 'today' : 'that day'), t.lateToday || 0, 'Based on schedules')}
+        ${stat('No-show ' + (d.isToday ? 'today' : 'that day'), t.noShowToday || 0, 'Scheduled but never clocked in')}
         ${stat('Hours (' + (d.isToday ? 'today' : 'day') + ')', hm(t.dayHours))}
         ${stat('Sales (' + (d.isToday ? 'today' : 'day') + ')', money(t.daySales))}
         ${stat('Week hours', hm(t.weekHours), esc(d.weekLabel))}
         ${stat('Week sales', money(t.weekSales), esc(d.weekLabel))}
         ${stat('Week total (100%)', money(t.weekGross), 'Hourly + commission', 'gold')}
-        ${stat('Employees\u2019 salary (70%)', money(t.weekPay), 'This week so far')}
-        ${stat('Agency share (30%)', money(t.weekAgency), 'This week so far', 'gold')}
+        ${stat(esc(W) + 's\u2019 salary (' + SP() + '%)', money(t.weekPay), 'This week so far')}
+        ${stat(esc(AGENCY) + ' share (' + AP() + '%)', money(t.weekAgency), 'This week so far', 'gold')}
       </div>
       ${t.pending ? `<div class="card" style="border-color:rgba(245,165,36,.45)"><b>${t.pending} pending request(s)</b> <span class="muted">waiting for your approval.</span> <button class="ghost sm" onclick="S.reqFilter='Pending';go('requests')">Review</button></div>` : ''}
-      <div class="card"><h3>Employees · ${esc(d.dateLabel)}</h3>
-        <div class="tw"><table><thead><tr><th>Employee</th><th>Status</th><th>Shift</th><th>Account</th><th class="n">Hours</th><th class="n">Sales</th><th class="n">Week hrs</th><th class="n">Week sales</th><th class="n">Week salary</th><th></th></tr></thead><tbody>
+      <div class="card"><h3>${esc(W)}s · ${esc(d.dateLabel)}</h3>
+        <div class="tw"><table><thead><tr><th>${esc(W)}</th><th>Status</th><th>Shift</th><th>Account</th><th class="n">Hours</th><th class="n">Sales</th><th class="n">Week hrs</th><th class="n">Week sales</th><th class="n">Week salary</th><th></th></tr></thead><tbody>
         ${d.employees.length ? d.employees.map(e => `<tr>
           <td><b>${esc(e.name)}</b><div class="muted small">${esc(e.position || '')}</div></td>
-          <td><span class="st ${STATUS_CLS[e.status] || 'none'}">${esc(e.status)}</span></td>
-          <td>${e.clockInAt ? `since ${esc(e.since)} · <span data-since="${e.clockInAt}">${clockStr(Date.now() - e.clockInAt)}</span>` : '<span class="muted">—</span>'}</td>
+          <td><span class="st ${STATUS_CLS[e.status] || 'none'}">${esc(e.status)}</span>${e.att && (e.att.flag === 'late' || e.att.flag === 'noshow') ? `<div style="margin-top:4px">${attPill(e.att)}</div>` : ''}</td>
+          <td>${e.clockInAt ? `since ${esc(e.since)} · <span data-since="${e.clockInAt}">${clockStr(Date.now() - e.clockInAt)}</span>` : '<span class="muted">—</span>'}${e.att && e.att.sched ? `<div class="muted small">Shift ${esc(e.att.sched)}</div>` : ''}</td>
           <td>${esc(e.account || '—')}</td>
           <td class="n">${hm(e.hours)}</td><td class="n">${money(e.sales)}</td>
           <td class="n">${hm(e.weekHours)}</td><td class="n">${money(e.weekSales)}</td><td class="n gold-t">${money(e.weekPay)}</td>
           <td class="n">${e.clockInAt ? `<button class="ghost sm" onclick="adminClockOut('${e.empId}','${esc(e.name).replace(/'/g, '')}')">Clock out</button>` : ''}</td></tr>`).join('')
-          : '<tr><td colspan="10" class="empty">No employees yet. Add one in the Employees tab.</td></tr>'}
+          : `<tr><td colspan="10" class="empty">No ${esc(W.toLowerCase())}s yet. Add one in the ${esc(W)}s tab.</td></tr>`}
         </tbody></table></div>
       </div>
       <div class="card"><h3>Last 14 days</h3><div class="chart-box"><canvas id="dashChart"></canvas></div></div>`;
@@ -667,18 +857,18 @@ const ADMIN = {
         ${stat('Total hours', hm(t.hours))}
         ${stat('Total sales', money(t.sales))}
         ${stat('Total (100%)', money(t.gross), money(t.hourlyPay) + ' hourly + ' + money(t.commission) + ' commission', 'gold')}
-        ${stat('Employees\u2019 salary (70%)', money(t.employeePay))}
-        ${stat('Agency share (30%)', money(t.agencyShare), '', 'gold')}
+        ${stat(esc(W) + 's\u2019 salary (' + SP() + '%)', money(t.employeePay))}
+        ${stat(esc(AGENCY) + ' share (' + AP() + '%)', money(t.agencyShare), '', 'gold')}
       </div>
-      <div class="card"><h3>Breakdown <span class="muted small">Total = hours × rate + sales × commission · Salary = total × employee share</span></h3>
-        <div class="tw"><table><thead><tr><th>Employee</th><th class="n">Hours</th><th class="n">Sales</th><th class="n">Hourly</th><th class="n">Commission</th><th class="n">Total (100%)</th><th class="n">Employee salary</th><th class="n">Agency share</th><th>Payslip</th></tr></thead><tbody>
+      <div class="card"><h3>Breakdown <span class="muted small">Total = hours × rate + sales × commission · Salary = total × ${esc(W.toLowerCase())} share</span></h3>
+        <div class="tw"><table><thead><tr><th>${esc(W)}</th><th class="n">Hours</th><th class="n">Sales</th><th class="n">Hourly</th><th class="n">Commission</th><th class="n">Total (100%)</th><th class="n">${esc(W)} salary</th><th class="n">${esc(AGENCY)} share</th><th>Payslip</th></tr></thead><tbody>
         ${d.employees.length ? d.employees.map(e => `<tr>
           <td><b>${esc(e.name)}</b>${e.status !== 'Active' ? ' <span class="st Inactive">Inactive</span>' : ''}<div class="muted small">$${e.rates.rate}/h · ${+(e.rates.comm * 100).toFixed(2)}% · ${+(e.rates.share * 100).toFixed(0)}/${+(100 - e.rates.share * 100).toFixed(0)}</div></td>
           <td class="n">${hm(e.hours)}</td><td class="n">${money(e.sales)}</td><td class="n">${money(e.hourlyPay)}</td><td class="n">${money(e.commission)}</td>
           <td class="n"><b>${money(e.gross)}</b></td><td class="n gold-t">${money(e.employeePay)}</td><td class="n">${money(e.agencyShare)}</td>
-          <td>${e.payslip ? `<span class="st Approved">Sent</span> <span class="muted small">${esc(e.payslip.sentAt)}</span><br><button class="ghost sm" onclick="run(this,()=>api('adminPayslipPdf',{id:'${e.payslip.id}'}).then(downloadB64))">PDF</button> <button class="ghost sm" onclick="payslipModal('${e.empId}')">Redo</button>`
+          <td>${e.payslip ? `<span class="st Approved">Sent</span> <span class="muted small">${esc(e.payslip.sentAt)}${e.payslip.by ? ' · by ' + esc(e.payslip.by) : ''}</span><br><button class="ghost sm" onclick="run(this,()=>api('adminPayslipPdf',{id:'${e.payslip.id}'}).then(downloadB64))">PDF</button> <button class="ghost sm" onclick="payslipModal('${e.empId}')">Redo</button>`
             : `<button class="btn sm" onclick="payslipModal('${e.empId}')">Generate</button>`}</td></tr>`).join('')
-          : '<tr><td colspan="9" class="empty">No employees.</td></tr>'}
+          : `<tr><td colspan="9" class="empty">No ${esc(W.toLowerCase())}s.</td></tr>`}
         ${d.employees.length ? `<tr class="tot"><td>Total</td><td class="n">${hm(t.hours)}</td><td class="n">${money(t.sales)}</td><td class="n">${money(t.hourlyPay)}</td><td class="n">${money(t.commission)}</td><td class="n">${money(t.gross)}</td><td class="n">${money(t.employeePay)}</td><td class="n">${money(t.agencyShare)}</td><td></td></tr>` : ''}
         </tbody></table></div>
       </div>`;
@@ -703,12 +893,12 @@ const ADMIN = {
     try {
       const list = await loadEmps(true);
       $('#view').innerHTML = `
-      <div class="toolbar"><h2>Employees</h2><button class="btn" onclick="addEmpModal()">+ Add employee</button></div>
-      <div class="card"><div class="tw"><table><thead><tr><th>Employee</th><th>Position</th><th>Pay terms</th><th>Offer letter</th><th>Login</th><th>Status</th><th></th></tr></thead><tbody>
+      <div class="toolbar"><h2>${esc(W)}s</h2><button class="btn" onclick="addEmpModal()">+ Add ${esc(W.toLowerCase())}</button></div>
+      <div class="card"><div class="tw"><table><thead><tr><th>${esc(W)}</th><th>Position</th><th>Pay terms</th><th>Offer letter</th><th>Login</th><th>Status</th><th></th></tr></thead><tbody>
       ${list.length ? list.map(e => `<tr>
         <td><b>${esc(e.name)}</b><div class="muted small">${esc(e.email)}</div></td>
-        <td>${esc(e.position)}<div class="muted small">Start ${esc(e.startDate)}</div></td>
-        <td>$${e.rates.rate}/h + ${+(e.rates.comm * 100).toFixed(2)}%<div class="muted small">${+(e.rates.share * 100).toFixed(0)}% employee / ${+(100 - e.rates.share * 100).toFixed(0)}% agency</div></td>
+        <td>${esc(e.position)}<div class="muted small">Start ${esc(e.startDate)}${e.addedBy ? ' · added by ' + esc(e.addedBy) : ''}</div></td>
+        <td>$${e.rates.rate}/h + ${+(e.rates.comm * 100).toFixed(2)}%<div class="muted small">${+(e.rates.share * 100).toFixed(0)}% ${esc(W.toLowerCase())} / ${+(100 - e.rates.share * 100).toFixed(0)}% agency</div></td>
         <td>${e.agreementSigned ? `<span class="st Approved">Signed</span><div class="muted small">${esc(e.signedAt)}${e.agreementUrl ? ` · <a href="${esc(e.agreementUrl)}" target="_blank" rel="noopener">View</a>` : ''}</div>` : '<span class="st Pending">Waiting</span>'}</td>
         <td>${e.passwordSet ? '<span class="st Active">Active</span>' : '<span class="st Pending">Invite sent</span>'}</td>
         <td><span class="st ${e.status}">${e.status}</span>${e.onDuty ? ' <span class="st on">On duty</span>' : ''}</td>
@@ -716,7 +906,8 @@ const ADMIN = {
           <button class="ghost sm" onclick="run(this,async()=>{await api('resendInvite',{empId:'${e.empId}'});toast('New login sent to ${esc(e.email)}');go('employees')})">Resend login</button>
           ${e.sheetUrl ? `<a class="ghost sm" style="text-decoration:none;display:inline-block" href="${esc(e.sheetUrl)}" target="_blank" rel="noopener">Sheet</a>` : ''}
           <button class="ghost sm" onclick="run(this,async()=>{await api('setEmployeeStatus',{empId:'${e.empId}',status:'${e.status === 'Active' ? 'Inactive' : 'Active'}'});toast('Updated.');go('employees')})">${e.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
-        </td></tr>`).join('') : '<tr><td colspan="7" class="empty">No employees yet. Click "Add employee" to send the first login.</td></tr>'}
+          ${e.status === 'Active' ? `<button class="ghost sm" style="color:var(--red)" onclick="warnModal('${e.empId}','Conduct','','Termination')">Terminate</button>` : ''}
+        </td></tr>`).join('') : `<tr><td colspan="7" class="empty">No ${esc(W.toLowerCase())}s yet. Click "Add ${esc(W.toLowerCase())}" to send the first login.</td></tr>`}
       </tbody></table></div></div>`;
     } catch (e) { $('#view').innerHTML = errBox(e.message); }
   },
@@ -729,7 +920,7 @@ const ADMIN = {
       $('#view').innerHTML = `
       <div class="card"><h3>Record a KPI</h3>
         <form id="kpiForm" class="fgrid">
-          <label>Employee<select name="empId" required><option value="">Select…</option>${empOptions()}</select></label>
+          <label>${esc(W)}<select name="empId" required><option value="">Select…</option>${empOptions()}</select></label>
           <label>Date<input name="date" type="date" value="${todayISO()}" required></label>
           <label>KPI / metric<input name="metric" list="kpiList" required placeholder="e.g. Weekly sales"></label>
           <label>Target<input name="target" type="number" step="any"></label>
@@ -739,13 +930,13 @@ const ADMIN = {
         </form>
         <datalist id="kpiList"><option value="Weekly sales"><option value="Hours worked"><option value="Response time (mins)"><option value="Conversion rate (%)"><option value="Sales per hour"><option value="Attendance (%)"></datalist>
       </div>
-      <div class="card"><h3>KPI records</h3><div class="tw"><table><thead><tr><th>Date</th><th>Employee</th><th>KPI</th><th class="n">Target</th><th class="n">Actual</th><th class="n">Achieved</th><th>Notes</th><th></th></tr></thead><tbody>
+      <div class="card"><h3>KPI records</h3><div class="tw"><table><thead><tr><th>Date</th><th>${esc(W)}</th><th>KPI</th><th class="n">Target</th><th class="n">Actual</th><th class="n">Achieved</th><th>Notes</th><th>By</th><th></th></tr></thead><tbody>
       ${list.length ? list.map(k => { const p = k.target ? Math.round(k.actual / k.target * 100) : null; return `<tr>
         <td>${esc(k.date)}</td><td>${esc(k.name)}</td><td>${esc(k.metric)}</td><td class="n">${k.target}</td><td class="n">${k.actual}</td>
         <td class="n">${p == null ? '—' : `<span class="st ${p >= 100 ? 'on' : p >= 80 ? 'off' : 'none'}">${p}%</span>`}</td>
-        <td class="wrap">${esc(k.notes)}</td>
+        <td class="wrap">${esc(k.notes)}</td><td>${esc(k.by || '—')}</td>
         <td class="n"><button class="ghost sm" onclick="if(confirm('Delete this KPI record?'))run(this,async()=>{await api('deleteKpi',{id:'${k.id}'});go('kpi')})">Delete</button></td></tr>`; }).join('')
-        : '<tr><td colspan="8" class="empty">No KPI records yet.</td></tr>'}
+        : '<tr><td colspan="9" class="empty">No KPI records yet.</td></tr>'}
       </tbody></table></div></div>`;
       $('#kpiForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('addKpi', f); toast('KPI saved.'); go('kpi'); }); };
     } catch (e) { $('#view').innerHTML = errBox(e.message); }
@@ -761,7 +952,7 @@ const ADMIN = {
       $('#view').innerHTML = `
       <div class="card"><h3>Record an issue</h3>
         <form id="issForm" class="fgrid">
-          <label>Employee<select name="empId" required><option value="">Select…</option>${empOptions()}</select></label>
+          <label>${esc(W)}<select name="empId" required><option value="">Select…</option>${empOptions()}</select></label>
           <label>Date<input name="date" type="date" value="${todayISO()}" required></label>
           <label>Category<select name="category">${cats.map(c => `<option>${c}</option>`).join('')}</select></label>
           <label>Severity<select name="severity"><option>Low</option><option>Medium</option><option>High</option></select></label>
@@ -772,15 +963,50 @@ const ADMIN = {
         </form>
       </div>
       <div class="card"><h3>Issue log <span class="pill">${list.filter(i => i.status !== 'Resolved').length} open</span></h3>
-        <div class="tw"><table><thead><tr><th>Date</th><th>Employee</th><th>Category</th><th>Severity</th><th>Details</th><th>Action taken</th><th>Status</th></tr></thead><tbody>
+        <div class="tw"><table><thead><tr><th>Date</th><th>${esc(W)}</th><th>Category</th><th>Severity</th><th>Details</th><th>Action taken</th><th>Recorded by</th><th>Status</th></tr></thead><tbody>
         ${list.length ? list.map(i => `<tr>
           <td>${esc(i.date)}</td><td>${esc(i.name)}</td><td>${esc(i.category)}</td><td><span class="st ${esc(i.severity)}">${esc(i.severity)}</span></td>
-          <td class="wrap">${esc(i.description)}</td><td class="wrap">${esc(i.actionTaken || '—')}</td>
+          <td class="wrap">${esc(i.description)}</td><td class="wrap">${esc(i.actionTaken || '—')}</td><td>${esc(i.by || '—')}${i.updatedBy && i.updatedBy !== i.by ? `<div class="muted small">updated by ${esc(i.updatedBy)}</div>` : ''}</td>
           <td><select onchange="updIssue('${i.id}',this)" style="margin:0;padding:6px 8px;width:auto">${sts.map(s => `<option ${s === i.status ? 'selected' : ''}>${s}</option>`).join('')}</select></td></tr>`).join('')
-          : '<tr><td colspan="7" class="empty">No issues recorded.</td></tr>'}
+          : '<tr><td colspan="8" class="empty">No issues recorded.</td></tr>'}
         </tbody></table></div>
       </div>`;
       $('#issForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('addIssue', f); toast('Issue recorded.'); go('issues'); }); };
+    } catch (e) { $('#view').innerHTML = errBox(e.message); }
+  },
+
+  async hr() {
+    const seg = S.hrSeg || 'attendance';
+    const segs = [['attendance', 'Attendance'], ['schedules', 'Schedules'], ['warnings', 'Warnings'], ['handbook', 'Handbook'], ['rules', 'Rules']];
+    $('#view').innerHTML = `<div class="toolbar"><h2>HR</h2><div class="seg">${segs.map(x => `<button class="${seg === x[0] ? 'on' : ''}" onclick="S.hrSeg='${x[0]}';go('hr')">${x[1]}</button>`).join('')}</div></div><div id="hrView"><div class="loading"><span class="spin"></span></div></div>`;
+    try { await HR[seg](); } catch (e) { $('#hrView').innerHTML = errBox(e.message); }
+  },
+
+  async admins() {
+    loading();
+    try {
+      const list = await api('listAdmins');
+      const owner = S.owner;
+      $('#view').innerHTML = `
+      <div class="toolbar"><h2>Admins</h2>${owner ? '<button class="btn" onclick="addAdminModal()">+ Add admin</button>' : ''}</div>
+      <div class="card">
+        <p class="muted small" style="margin-top:0">Admins can see everything on this board, approve requests and run payroll. ${owner ? 'Only you (the owner) can add or remove admins.' : 'Only the owner can add or remove admins.'} "Emails" decides who gets request and offer-letter notifications.</p>
+        <div class="tw"><table><thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Login</th><th>Emails</th><th>Added by</th><th></th></tr></thead><tbody>
+        ${list.map(a => {
+          const canToggle = owner || a.you;
+          return `<tr>
+          <td><b>${esc(a.name)}</b>${a.you ? ' <span class="pill">you</span>' : ''}<div class="muted small">${esc(a.email)}</div></td>
+          <td>${a.role === 'Owner' ? '<span class="st Approved">Owner</span>' : '<span class="pill">Admin</span>'}</td>
+          <td><span class="st ${a.status}">${a.status}</span></td>
+          <td>${a.passwordSet ? (a.lastLogin ? `<span class="muted small">Last login ${esc(a.lastLogin)}</span>` : '<span class="st Active">Active</span>') : '<span class="st Pending">Invite sent</span>'}</td>
+          <td><label class="agree" style="margin:0"><input type="checkbox" ${a.notify ? 'checked' : ''} ${canToggle ? '' : 'disabled'} onchange="setNotify('${a.id}', this)"> ${a.notify ? 'On' : 'Off'}</label></td>
+          <td>${esc(a.createdBy || '—')}</td>
+          <td class="n">${owner && a.role !== 'Owner' ? `
+            <button class="ghost sm" onclick="run(this,async()=>{await api('resendAdminInvite',{adminId:'${a.id}'});toast('New login sent to ${esc(a.email)}');go('admins')})">Resend login</button>
+            <button class="ghost sm" onclick="run(this,async()=>{await api('setAdminStatus',{adminId:'${a.id}',status:'${a.status === 'Active' ? 'Inactive' : 'Active'}'});toast('Updated.');go('admins')})">${a.status === 'Active' ? 'Turn off' : 'Turn on'}</button>` : ''}</td></tr>`;
+        }).join('')}
+        </tbody></table></div>
+      </div>`;
     } catch (e) { $('#view').innerHTML = errBox(e.message); }
   },
 
@@ -795,14 +1021,14 @@ const ADMIN = {
       <div class="stats">
         ${stat('Hours', hm(tot.h))}${stat('Sales', money(tot.s))}
         ${stat('Sales per hour', money(tot.h ? tot.s / tot.h : 0))}
-        ${stat('Total (100%)', money(tot.g), '', 'gold')}${stat('Agency share', money(tot.a), '', 'gold')}
+        ${stat('Total (100%)', money(tot.g), '', 'gold')}${stat(esc(AGENCY) + ' share', money(tot.a), '', 'gold')}
       </div>
       <div class="grid2">
         <div class="card"><h3>Daily sales</h3><div class="chart-box"><canvas id="cSales"></canvas></div></div>
         <div class="card"><h3>Daily hours</h3><div class="chart-box"><canvas id="cHours"></canvas></div></div>
       </div>
-      <div class="card"><h3>Sales by employee</h3><div class="chart-box" style="height:${Math.max(220, d.perEmp.length * 38)}px"><canvas id="cEmp"></canvas></div></div>
-      <div class="card"><h3>Employee performance</h3><div class="tw"><table><thead><tr><th>Employee</th><th class="n">Days worked</th><th class="n">Hours</th><th class="n">Sales #</th><th class="n">Sales</th><th class="n">Sales / hour</th><th class="n">Total (100%)</th><th class="n">Employee salary</th><th class="n">Agency share</th></tr></thead><tbody>
+      <div class="card"><h3>Sales by ${esc(W.toLowerCase())}</h3><div class="chart-box" style="height:${Math.max(220, d.perEmp.length * 38)}px"><canvas id="cEmp"></canvas></div></div>
+      <div class="card"><h3>${esc(W)} performance</h3><div class="tw"><table><thead><tr><th>${esc(W)}</th><th class="n">Days worked</th><th class="n">Hours</th><th class="n">Sales #</th><th class="n">Sales</th><th class="n">Sales / hour</th><th class="n">Total (100%)</th><th class="n">${esc(W)} salary</th><th class="n">${esc(AGENCY)} share</th></tr></thead><tbody>
       ${d.perEmp.length ? d.perEmp.map(x => `<tr><td>${esc(x.name)}</td><td class="n">${x.daysWorked}</td><td class="n">${hm(x.hours)}</td><td class="n">${x.count}</td><td class="n">${money(x.sales)}</td><td class="n">${money(x.salesPerHour)}</td><td class="n">${money(x.gross)}</td><td class="n gold-t">${money(x.employeePay)}</td><td class="n">${money(x.agencyShare)}</td></tr>`).join('')
         : '<tr><td colspan="9" class="empty">No data yet.</td></tr>'}
       </tbody></table></div></div>`;
@@ -829,28 +1055,253 @@ function adminClockOut(id, name) {
 
 function reviewReq(id, decision) {
   openModal(`<h3>${decision === 'Approved' ? 'Approve' : 'Deny'} request</h3>
-    <label>Note to employee (optional)<textarea id="rvNote" placeholder="${decision === 'Denied' ? 'Let them know why' : 'Optional'}"></textarea></label>
+    <label>Note to ${esc(W.toLowerCase())} (optional)<textarea id="rvNote" placeholder="${decision === 'Denied' ? 'Let them know why' : 'Optional'}"></textarea></label>
     <div class="macts"><button class="ghost" onclick="closeModal()">Cancel</button>
     <button class="btn ${decision === 'Approved' ? 'green' : 'danger'}" id="rvBtn">${decision === 'Approved' ? 'Approve' : 'Deny'}</button></div>`);
   $('#rvBtn').onclick = e => run(e.currentTarget, async () => {
     await api('reviewRequest', { reqId: id, decision: decision, note: $('#rvNote').value });
-    closeModal(); toast('Request ' + decision.toLowerCase() + '. Employee notified.'); go('requests');
+    closeModal(); toast('Request ' + decision.toLowerCase() + '. ' + W + ' notified.'); go('requests');
   });
+}
+
+
+/* ============================================================
+   ADMIN HR SECTIONS
+   ============================================================ */
+const LEVELS = ['Verbal warning', 'Written warning', 'Final warning', 'Termination'];
+const WCATS = ['Attendance', 'Tardiness', 'No-show', 'Sales report', 'Conduct', 'Customer complaint', 'Policy violation', 'Account security', 'Performance', 'Other'];
+const WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+const HR = {
+  async attendance() {
+    const d = await api('attendance', { date: S.attDate || '' });
+    S.attDate = d.weekStart; S.att = d;
+    const r = d.rules, none = !d.agents.some(a => a.hasSchedule);
+    $('#hrView').innerHTML = `
+      <div class="toolbar">
+        <button class="ghost sm" onclick="attWeek(-7)">‹ Prev</button><span class="pill">${esc(d.label)}</span><button class="ghost sm" onclick="attWeek(7)">Next ›</button>
+        <span class="muted small" style="margin-left:auto">Grace ${r.graceMin} min · early-out after ${r.earlyOutMin} min · review at ${r.lateAlert} lates or ${r.noShowAlert} no-show${r.noShowAlert > 1 ? 's' : ''} in 30 days</span>
+      </div>
+      ${none ? `<div class="note">No schedules yet. Set each ${esc(W.toLowerCase())}'s weekly shift in <a href="#" onclick="S.hrSeg='schedules';go('hr');return false">Schedules</a> and attendance is checked automatically.</div>` : ''}
+      <div class="card"><h3>This week</h3><div class="tw"><table><thead><tr><th>${esc(W)}</th><th class="n">Scheduled</th><th class="n">On time</th><th class="n">Late</th><th class="n">Left early</th><th class="n">No-show</th><th class="n">Day off</th><th>Last 30 days</th><th>Warning</th><th></th></tr></thead><tbody>
+      ${d.agents.length ? d.agents.map(a => `<tr>
+        <td><b>${esc(a.name)}</b>${a.hasSchedule ? '' : '<div class="muted small">No schedule</div>'}</td>
+        <td class="n">${a.counts.scheduled}</td><td class="n">${a.counts.onTime}</td>
+        <td class="n">${a.counts.late ? `<span class="st off">${a.counts.late}</span><div class="muted small">${a.counts.lateMin} min</div>` : 0}</td>
+        <td class="n">${a.counts.early ? `<span class="st off">${a.counts.early}</span>` : 0}</td>
+        <td class="n">${a.counts.noshow ? `<span class="st none">${a.counts.noshow}</span>` : 0}</td>
+        <td class="n">${a.counts.dayoff}</td>
+        <td>${a.late30} late · ${a.noshow30} no-show ${a.flagged ? '<span class="st none">Review</span>' : ''}</td>
+        <td>${a.warning ? `<span class="st off">${esc(a.warning)}</span>` : '<span class="muted">—</span>'}</td>
+        <td class="n"><button class="ghost sm" onclick="warnModal('${a.empId}','${a.noshow30 ? 'No-show' : 'Tardiness'}','${esc((a.late30 + ' late arrival(s) and ' + a.noshow30 + ' no-show(s) in the last 30 days.').replace(/'/g, ''))}')">Warn</button></td></tr>`).join('')
+        : `<tr><td colspan="10" class="empty">No ${esc(W.toLowerCase())}s yet.</td></tr>`}
+      </tbody></table></div></div>
+      <div class="card"><h3>Exceptions <span class="pill">${d.exceptions.length}</span></h3><div class="tw"><table><thead><tr><th>Day</th><th>${esc(W)}</th><th>Schedule</th><th>In</th><th>Out</th><th>Issue</th></tr></thead><tbody>
+      ${d.exceptions.length ? d.exceptions.map(x => `<tr><td>${esc(x.label)}</td><td>${esc(x.name)}</td><td class="daycell">${esc(x.sched)}</td><td>${esc(x.in || '—')}</td><td>${esc(x.out || '—')}</td><td>${attPill(x)}</td></tr>`).join('')
+        : '<tr><td colspan="6" class="empty">No late arrivals, early outs or no-shows this week.</td></tr>'}
+      </tbody></table></div>
+      <p class="muted small" style="margin-bottom:0">Approved time corrections and approved days off update this automatically.</p></div>`;
+  },
+
+  async schedules() {
+    const list = await api('listSchedules');
+    S.scheds = list;
+    $('#hrView').innerHTML = `<div class="card"><h3>Weekly schedules <span class="muted small">Overnight shifts are fine (e.g. 10pm–6am).</span></h3>
+      <div class="tw"><table><thead><tr><th>${esc(W)}</th>${WEEK.map(d => `<th>${d}</th>`).join('')}<th></th></tr></thead><tbody>
+      ${list.length ? list.map(a => `<tr><td><b>${esc(a.name)}</b>${a.updatedBy ? `<div class="muted small">by ${esc(a.updatedBy)}</div>` : ''}</td>
+        ${WEEK.map(d => `<td class="daycell">${a.days[d] ? esc(schedLabel(a.days[d])) : '<span class="muted">Off</span>'}</td>`).join('')}
+        <td class="n"><button class="${a.set ? 'ghost' : 'btn'} sm" onclick="schedModal('${a.empId}')">${a.set ? 'Edit' : 'Set schedule'}</button></td></tr>`).join('')
+        : `<tr><td colspan="9" class="empty">No active ${esc(W.toLowerCase())}s.</td></tr>`}
+      </tbody></table></div></div>`;
+  },
+
+  async warnings() {
+    const d = await api('listWarnings');
+    S.warn = d;
+    await loadEmps();
+    const f = S.warnFilter || 'Active';
+    const list = d.warnings.filter(w => f === 'All' || w.status === f);
+    $('#hrView').innerHTML = `
+      <div class="toolbar"><div class="seg">${['Active', 'Expired', 'Withdrawn', 'All'].map(x => `<button class="${f === x ? 'on' : ''}" onclick="S.warnFilter='${x}';go('hr')">${x}</button>`).join('')}</div>
+        <button class="btn" style="margin-left:auto" onclick="warnModal('')">+ Issue warning</button></div>
+      <div class="note small">Steps: <b>Verbal → Written → Final → Termination</b>. Each warning stays active for ${d.expiryDays} days. The next step is suggested automatically. Serious misconduct can skip steps.</div>
+      <div class="card"><div class="tw"><table><thead><tr><th>Date</th><th>${esc(W)}</th><th>Level</th><th>Category</th><th>Details</th><th>Issued by</th><th>Active until</th><th>Status</th><th>Acknowledged</th><th></th></tr></thead><tbody>
+      ${list.length ? list.map(w => `<tr><td>${esc(w.dateLabel)}</td><td>${esc(w.name)}</td>
+        <td><span class="st ${LEVELS.indexOf(w.level) >= 2 ? 'none' : 'off'}">${esc(w.level)}</span></td><td>${esc(w.category)}</td>
+        <td class="wrap">${esc(w.details)}</td><td>${esc(w.issuedBy)}</td><td>${esc(w.expiresLabel || '—')}</td>
+        <td><span class="st ${w.status === 'Active' ? 'off' : 'Cancelled'}">${esc(w.status)}</span>${w.withdrawnBy ? `<div class="muted small">by ${esc(w.withdrawnBy)}</div>` : ''}</td>
+        <td>${w.ack ? `<span class="muted small">${esc(w.ack)}</span>` : (w.status === 'Active' ? '<span class="st Pending">Waiting</span>' : '—')}</td>
+        <td class="n">${w.status === 'Active' ? `<button class="ghost sm" onclick="if(confirm('Withdraw this warning? It will no longer count.'))run(this,async()=>{await api('withdrawWarning',{id:'${w.id}'});toast('Warning withdrawn.');go('hr')})">Withdraw</button>` : ''}</td></tr>`).join('')
+        : '<tr><td colspan="10" class="empty">No warnings here.</td></tr>'}
+      </tbody></table></div></div>`;
+  },
+
+  async handbook() {
+    const d = await api('listPolicies');
+    S.pol = d;
+    const a = d.ack;
+    $('#hrView').innerHTML = `
+      <div class="stats">
+        ${stat('Handbook version', d.version, d.sections.length + ' sections')}
+        ${stat('Acknowledged', a.acked + ' of ' + a.total, a.pending.length ? 'Waiting: ' + esc(a.pending.slice(0, 4).join(', ')) + (a.pending.length > 4 ? '…' : '') : 'Everyone is up to date', a.pending.length ? '' : 'gold')}
+      </div>
+      <div class="toolbar"><span class="muted small">${esc(W)}s read and acknowledge this when they join. Tick "ask again" when you make an important change.</span>
+        <button class="btn" style="margin-left:auto" onclick="policyModal('')">+ Add section</button></div>
+      ${d.sections.map((x, i) => `<details class="hb-edit"><summary><span><span class="num">${x.order}</span><b>${esc(x.title)}</b></span>
+          <span><span class="muted small">${x.updatedBy ? 'by ' + esc(x.updatedBy) : ''}</span>
+          <button class="ghost sm" onclick="event.preventDefault();policyModal('${x.id}')">Edit</button>
+          <button class="ghost sm" onclick="event.preventDefault();if(confirm('Delete this section?'))run(this,async()=>{await api('deletePolicy',{id:'${x.id}'});toast('Section deleted.');go('hr')})">Delete</button></span></summary>
+        <div class="hb-sec">${x.html}</div></details>`).join('')}`;
+  },
+
+  async rules() {
+    const r = await api('getHrRules');
+    $('#hrView').innerHTML = `<div class="card" style="max-width:640px"><h3>Attendance &amp; discipline rules</h3>
+      <form id="rulesForm" class="fgrid">
+        <label>Grace period (minutes)<input name="graceMin" type="number" min="0" max="120" value="${r.graceMin}"></label>
+        <label>Early-out after (minutes)<input name="earlyOutMin" type="number" min="0" max="240" value="${r.earlyOutMin}"></label>
+        <label>Warnings stay active (days)<input name="expiryDays" type="number" min="7" max="730" value="${r.expiryDays}"></label>
+        <label>Flag for review after X lates (30 days)<input name="lateAlert" type="number" min="1" max="30" value="${r.lateAlert}"></label>
+        <label>Flag for review after X no-shows (30 days)<input name="noShowAlert" type="number" min="1" max="30" value="${r.noShowAlert}"></label>
+        <div class="full"><button class="btn">Save rules</button></div>
+      </form>
+      <p class="muted small" style="margin-bottom:0">The handbook uses these numbers automatically, so it always matches your rules.</p></div>`;
+    $('#rulesForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('saveHrRules', f); toast('Rules saved.'); go('hr'); }); };
+  }
+};
+
+function attWeek(n) {
+  const p = (S.attDate || todayISO()).split('-').map(Number);
+  S.attDate = new Date(Date.UTC(p[0], p[1] - 1, p[2] + n)).toISOString().slice(0, 10);
+  go('hr');
+}
+
+function schedModal(empId) {
+  const a = S.scheds.find(x => x.empId === empId);
+  const row = d => {
+    const v = a.days[d] || ''; const [st, en] = v ? v.split('-') : ['', ''];
+    return `<div class="schedrow"><b>${d}</b><label class="agree"><input type="checkbox" class="sWork" data-d="${d}" ${v ? 'checked' : ''}> Working</label>
+      <input type="time" class="sStart" data-d="${d}" value="${st || '09:00'}"><input type="time" class="sEnd" data-d="${d}" value="${en || '17:00'}"></div>`;
+  };
+  openModal(`<h3>Schedule · ${esc(a.name)}</h3>
+    <div class="schedrow muted small" style="border:0"><span>Day</span><span></span><span>Start</span><span>End</span></div>
+    ${WEEK.map(row).join('')}
+    <div style="margin-top:10px"><button type="button" class="ghost sm" id="sCopy">Copy Monday to Mon–Fri</button></div>
+    <p class="muted small">Times are in ${esc(B.timezoneLabel || 'your time zone')}. If the end time is earlier than the start, it ends the next day.</p>
+    <div class="macts"><button class="ghost" onclick="closeModal()">Cancel</button><button class="btn" id="sSave">Save schedule</button></div>`);
+  $('#sCopy').onclick = () => {
+    const w = document.querySelector('.sWork[data-d=Mon]').checked, st = document.querySelector('.sStart[data-d=Mon]').value, en = document.querySelector('.sEnd[data-d=Mon]').value;
+    ['Tue', 'Wed', 'Thu', 'Fri'].forEach(d => { document.querySelector(`.sWork[data-d=${d}]`).checked = w; document.querySelector(`.sStart[data-d=${d}]`).value = st; document.querySelector(`.sEnd[data-d=${d}]`).value = en; });
+  };
+  $('#sSave').onclick = e => run(e.currentTarget, async () => {
+    const days = {};
+    WEEK.forEach(d => {
+      if (document.querySelector(`.sWork[data-d=${d}]`).checked) days[d] = { start: document.querySelector(`.sStart[data-d=${d}]`).value, end: document.querySelector(`.sEnd[data-d=${d}]`).value };
+    });
+    await api('saveSchedule', { empId: empId, days: days });
+    closeModal(); toast('Schedule saved.'); go('hr');
+  });
+}
+
+async function warnModal(empId, category, details, presetLevel) {
+  if (!S.warn) S.warn = await api('listWarnings');
+  await loadEmps();
+  const next = id => (S.warn.next || {})[id] || LEVELS[0];
+  openModal(`<h3>Issue warning</h3>
+    <form id="wForm">
+      <label>${esc(W)}<select name="empId" id="wEmp" required><option value="">Select…</option>${empOptions(empId)}</select></label>
+      <div class="fgrid">
+        <label>Level<select name="level" id="wLevel">${LEVELS.map(l => `<option ${l === (presetLevel || next(empId)) ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <label>Category<select name="category">${WCATS.map(c => `<option ${c === category ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
+        <label>Date<input name="date" type="date" value="${todayISO()}"></label>
+      </div>
+      <p class="muted small" id="wHint" style="margin-top:-4px"></p>
+      <label>What happened<textarea name="details" required>${esc(details || '')}</textarea></label>
+      <div class="hidden" id="wDeact">
+        <label>Last working day<input name="lastDay" type="date" value="${todayISO()}"></label>
+        <label class="agree"><input type="checkbox" name="deactivate" checked> Turn off their portal access now</label>
+        <div class="note small">They'll receive a formal <b>termination letter</b> by email (PDF attached, also saved in their folder). It covers the reason, final pay, and ending access to accounts.</div>
+      </div>
+      <p class="muted small">They'll get an email and must acknowledge it in their portal.</p>
+      <div class="macts"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="btn danger">Issue warning</button></div>
+    </form>`);
+  const hint = () => {
+    const id = $('#wEmp').value, term = $('#wLevel').value === 'Termination';
+    $('#wHint').textContent = id ? 'Suggested next step: ' + next(id) + (term && next(id) !== 'Termination' ? ' · Termination can skip steps depending on severity.' : '') : '';
+    $('#wDeact').classList.toggle('hidden', !term);
+    $('#wForm .btn.danger').textContent = term ? 'Terminate & send letter' : 'Issue warning';
+  };
+  $('#wEmp').onchange = () => { if (!presetLevel) $('#wLevel').value = next($('#wEmp').value); hint(); };
+  $('#wLevel').onchange = hint; hint();
+  $('#wForm').onsubmit = e => {
+    e.preventDefault(); const f = fd(e.target);
+    run(e.target.querySelector('.btn'), async () => {
+      if (f.level === 'Termination' && !confirm('Terminate this ' + W.toLowerCase() + ' and email the termination letter now?')) return;
+      await api('issueWarning', { empId: f.empId, level: f.level, category: f.category, date: f.date, details: f.details, deactivate: !!f.deactivate, lastDay: f.lastDay });
+      closeModal(); toast(f.level === 'Termination' ? 'Termination letter sent.' : 'Warning issued and emailed.'); S.warn = null; S.emps = null;
+      if (S.tab === 'hr' || S.tab === 'employees') go(S.tab);
+    });
+  };
+}
+
+function policyModal(id) {
+  const x = id ? S.pol.sections.find(p => p.id === id) : { order: S.pol.sections.length + 1, title: '', body: '' };
+  openModal(`<h3>${id ? 'Edit section' : 'Add section'}</h3>
+    <form id="pForm">
+      <div class="fgrid"><label>Order<input name="order" type="number" min="1" value="${x.order}"></label><label style="grid-column:span 3">Title<input name="title" required value="${esc(x.title)}"></label></div>
+      <label>Text<textarea name="body" required style="min-height:260px;font-family:inherit">${esc(x.body)}</textarea></label>
+      <p class="muted small" style="margin-top:-4px">Start a line with "- " for a bullet. You can use {{agency}}, {{worker}}, {{grace}}, {{earlyOut}}, {{expiry}} and {{timezone}}; they fill in automatically from your settings.</p>
+      <label class="agree"><input type="checkbox" name="reack"> Ask all ${esc(W.toLowerCase())}s to read and acknowledge the handbook again</label>
+      <div class="macts"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="btn">Save</button></div>
+    </form>`, true);
+  $('#pForm').onsubmit = e => {
+    e.preventDefault(); const f = fd(e.target);
+    run(e.target.querySelector('.btn'), async () => {
+      await api('savePolicy', { id: id, order: f.order, title: f.title, body: f.body, reack: !!f.reack });
+      closeModal(); toast(f.reack ? 'Saved. Everyone will be asked to acknowledge again.' : 'Section saved.'); go('hr');
+    });
+  };
+}
+
+function setNotify(id, box) {
+  run(null, async () => {
+    try { await api('setAdminNotify', { adminId: id, notify: box.checked }); toast('Email notifications ' + (box.checked ? 'on.' : 'off.')); go('admins'); }
+    catch (e) { box.checked = !box.checked; throw e; }
+  });
+}
+
+function addAdminModal() {
+  openModal(`<h3>Add admin</h3>
+    <p class="muted small" style="margin-top:-6px">They'll get an email with a temporary password and set their own on first login. Admins can do everything except manage other admins.</p>
+    <form id="aaForm">
+      <label>Full name<input name="name" required maxlength="100"></label>
+      <label>Email<input name="email" type="email" required></label>
+      <label class="agree"><input type="checkbox" name="notify" checked> Email them about requests and signed offer letters</label>
+      <div class="macts"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="btn">Add &amp; send login</button></div>
+    </form>`);
+  $('#aaForm').onsubmit = e => {
+    e.preventDefault();
+    const f = fd(e.target);
+    run(e.target.querySelector('.btn'), async () => {
+      await api('addAdmin', { name: f.name, email: f.email, notify: !!f.notify });
+      closeModal(); toast('Admin added. Login sent to ' + f.email); go('admins');
+    });
+  };
 }
 
 function updIssue(id, sel) { run(null, async () => { await api('updateIssue', { id: id, status: sel.value }); toast('Issue updated.'); }); }
 
 function addEmpModal() {
-  openModal(`<h3>Add employee</h3>
+  openModal(`<h3>Add ${esc(W.toLowerCase())}</h3>
     <p class="muted small" style="margin-top:-6px">They'll get an email with their login. On first login they sign the offer letter, then set their own password.</p>
     <form id="aeForm" class="fgrid">
       <label class="full">Full name<input name="name" required maxlength="100"></label>
       <label class="full">Email<input name="email" type="email" required></label>
-      <label>Position<input name="position" value="Agent"></label>
+      <label>Position<input name="position" value="${esc(W)}"></label>
       <label>Start date<input name="startDate" type="date" value="${todayISO()}"></label>
-      <label>Hourly rate ($)<input name="hourlyRate" type="number" step="0.01" min="0" value="3"></label>
-      <label>Commission (%)<input name="commissionPct" type="number" step="0.01" min="0" value="1"></label>
-      <label>Employee share (%)<input name="sharePct" type="number" step="1" min="1" max="100" value="70"></label>
+      <label>Hourly rate ($)<input name="hourlyRate" type="number" step="0.01" min="0" value="${B.hourlyRate}"></label>
+      <label>Commission (%)<input name="commissionPct" type="number" step="0.01" min="0" value="${+(B.commissionRate * 100).toFixed(2)}"></label>
+      <label>${esc(W)} share (%)<input name="sharePct" type="number" step="1" min="1" max="100" value="${SP()}"></label>
       <div class="full macts"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="btn">Add &amp; send login</button></div>
     </form>`);
   $('#aeForm').onsubmit = e => {
@@ -858,7 +1309,7 @@ function addEmpModal() {
     const f = fd(e.target);
     run(e.target.querySelector('.btn'), async () => {
       await api('addEmployee', f);
-      closeModal(); toast('Employee added. Login sent to ' + f.email); go('employees');
+      closeModal(); toast(W + ' added. Login sent to ' + f.email); go('employees');
     });
   };
 }
@@ -870,15 +1321,15 @@ function payslipModal(empId) {
     <div class="mrow"><span>Hours</span><b>${hm(e.hours)}</b></div>
     <div class="mrow"><span>Sales</span><b>${money(e.sales)}</b></div>
     <div class="mrow"><span>Total (100%)</span><b>${money(e.gross)}</b></div>
-    <div class="mrow"><span>Agency share (${+(100 - e.rates.share * 100).toFixed(0)}%)</span><b>${money(e.agencyShare)}</b></div>
-    <div class="mrow"><span>Employee salary (${+(e.rates.share * 100).toFixed(0)}%)</span><b class="gold-t">${money(e.employeePay)}</b></div>
+    <div class="mrow"><span>${esc(AGENCY)} share (${+(100 - e.rates.share * 100).toFixed(0)}%)</span><b>${money(e.agencyShare)}</b></div>
+    <div class="mrow"><span>${esc(W)} salary (${+(e.rates.share * 100).toFixed(0)}%)</span><b class="gold-t">${money(e.employeePay)}</b></div>
     <div class="fgrid" style="margin-top:14px">
       <label>Bonus / deduction ($)<input id="psAdj" type="number" step="0.01" value="0" placeholder="use minus for deduction"></label>
       <label>Reason<input id="psNote" maxlength="200" placeholder="optional"></label>
     </div>
     <div class="mrow" style="border:0"><span><b>Net pay on payslip</b></span><b class="gold-t" id="psNet">${money(e.employeePay)}</b></div>
     <label class="agree"><input type="checkbox" id="psSend" checked> Email the payslip PDF to ${esc(e.name)}</label>
-    <p class="muted small">The payslip only shows the employee's share — the 100% total and agency share stay on your side.</p>
+    <p class="muted small">The payslip only shows the ${esc(W.toLowerCase())}'s share — the 100% total and ${esc(AGENCY)} share stay on your side.</p>
     <div class="macts"><button class="ghost" onclick="closeModal()">Cancel</button><button class="btn" id="psBtn">Generate payslip</button></div>`);
   $('#psAdj').oninput = ev => { $('#psNet').textContent = money(e.employeePay + (Number(ev.target.value) || 0)); };
   $('#psBtn').onclick = ev => run(ev.currentTarget, async () => {
@@ -887,8 +1338,7 @@ function payslipModal(empId) {
   });
 }
 
-try { document.getElementById('favicon').href = LOGO; } catch (e) {}
-boot();
+loadBranding().then(boot);
 </script>
 </body>
 </html>
