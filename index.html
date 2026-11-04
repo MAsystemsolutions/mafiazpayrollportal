@@ -261,8 +261,21 @@ if (window.Chart) {
 const GOLD = '#d4a24c', TEAL = '#4fb3a9';
 
 /* ---------------- boot & auth ---------------- */
+const AGENT_LINK = (() => { try { return new URLSearchParams(location.search).has('agent'); } catch (e) { return false; } })();
+let agentLinkHandled = false;
+
 async function boot() {
   S.token = store.get('mz_token'); S.role = store.get('mz_role'); S.name = store.get('mz_name') || '';
+  // Agent invite link: never open someone else's (e.g. admin's) saved session
+  if (AGENT_LINK && !agentLinkHandled) {
+    agentLinkHandled = true;
+    try { history.replaceState(null, '', location.pathname); } catch (e) {}
+    if (S.token && S.role === 'admin') {
+      store.del('mz_token'); store.del('mz_role'); store.del('mz_name');
+      S.token = null; S.role = null; S.name = '';
+      return renderLogin('', true);
+    }
+  }
   if (!S.token) return renderLogin();
   if (S.role === 'admin') return showAdmin();
   try {
@@ -274,11 +287,11 @@ async function boot() {
   } catch (e) { if (S.token) renderLogin(e.message); }
 }
 
-function renderLogin(msg) {
+function renderLogin(msg, agentView) {
   $('#app').innerHTML = `
   <div class="auth"><div class="auth-card">
     <div class="brand"><img class="logo" src="${LOGO}" alt="Mafiaz logo"><div><b>${AGENCY}</b><small>Payroll & Employee Portal</small></div></div>
-    <h2>Welcome back</h2><p class="muted" style="margin:0 0 18px">Log in with the email and password sent to you.</p>
+    <h2>${agentView ? 'Agent login' : 'Welcome back'}</h2><p class="muted" style="margin:0 0 18px">Log in with the email and password sent to you.</p>
     ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
     <form id="loginForm">
       <label>Email<input name="email" type="email" autocomplete="username" required></label>
