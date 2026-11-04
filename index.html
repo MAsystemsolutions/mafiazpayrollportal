@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0f13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" id="touchicon">
 <title>Portal</title>
 <link rel="icon" id="favicon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -180,6 +185,40 @@ tr.tot td{font-weight:700;background:var(--panel2)}
 .rule-step{display:flex;gap:10px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
 .rule-step .num{width:26px;height:26px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#111;font-weight:800;font-size:13px}
 .rule-ex{margin-top:12px;padding:12px 14px;border-radius:12px;border-left:3px solid var(--gold);background:rgba(212,162,76,.08);line-height:1.7}
+/* shift report */
+.rep-lines{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.rep-line{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;border-bottom:1px solid var(--line)}
+.rep-line:last-child{border-bottom:0}
+.rep-acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.rep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.rep-mini{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
+/* laptops: comfortable width */
+@media (min-width:1400px){ main{max-width:1320px} }
+/* phones */
+@media (max-width:640px){
+  html,body{font-size:15px}
+  main{padding:14px 12px calc(90px + env(safe-area-inset-bottom))}
+  .card{padding:14px;border-radius:12px}
+  .stats{grid-template-columns:1fr 1fr;gap:8px}
+  .stat{padding:12px}
+  .stat .v{font-size:18px}
+  .toolbar h2{width:100%;margin:0}
+  input,select,textarea{font-size:16px} /* stops iPhone zooming into fields */
+  .btn,.ghost{min-height:40px}
+  .ghost.sm,.btn.sm{min-height:34px}
+  th,td{padding:8px 10px;font-size:13px}
+  .modal{place-items:end center;padding:0}
+  .modal-card,.modal-card.wide{max-width:100%;border-radius:18px 18px 0 0;max-height:92vh;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+  .schedrow{grid-template-columns:44px 1fr;row-gap:6px}
+  .schedrow input[type=time]{grid-column:span 1}
+  .docbox{padding:18px;font-size:13px}
+  .rep-acts .btn,.rep-acts .ghost{flex:1}
+  /* agents: tabs become a bottom bar like a phone app */
+  body.is-agent .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(21,24,33,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);border-bottom:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom));justify-content:space-around;gap:0}
+  body.is-agent .tabs button{flex:1;flex-direction:column;justify-content:center;font-size:11.5px;padding:8px 2px;border-radius:10px;position:relative}
+  body.is-agent .tabs .badge{position:absolute;top:2px;right:18%;font-size:10px;padding:0 5px}
+  body.is-admin .tabs{position:sticky;top:61px;z-index:15;background:var(--bg)}
+}
 @media (max-width:820px){
   .grid2{grid-template-columns:1fr}
   .timer{font-size:38px}
@@ -200,7 +239,7 @@ tr.tot td{font-weight:700;background:var(--panel2)}
 const API_URL = 'https://script.google.com/macros/s/AKfycbyb8UMHiYOs9ZflwAoFM4HiLHTA5bZOkMpJtFRKIs1b8qGMF6sXlXxMhMLumcAzVC3F/exec';
 /* Brand (name, logo, color, rates) comes from CONFIG in Code.gs — nothing to edit here. */
 let AGENCY = '', LOGO = '', W = 'Agent';
-let B = { agency: '', worker: 'Agent', accent: '#d4a24c', logo: '', hourlyRate: 3, commissionRate: 0.01, employeeShare: 0.7, timezoneLabel: '' };
+let B = { agency: '', worker: 'Agent', accent: '#d4a24c', logo: '', hourlyRate: 3, commissionRate: 0.01, employeeShare: 0.7, feeRate: 0, timezoneLabel: '' };
 const SP = () => Math.round((Number(B.employeeShare) || 0.7) * 100);   // agent share %
 const AP = () => 100 - SP();                                           // agency share %
 function logoHtml() { return LOGO ? `<img class="logo" src="${LOGO}" alt="">` : `<span class="logo">${esc((AGENCY || '?').charAt(0))}</span>`; }
@@ -216,7 +255,7 @@ function applyBrand(b) {
     document.documentElement.style.setProperty('--gold', B.accent);
     document.documentElement.style.setProperty('--gold2', lighten(B.accent, .25));
   }
-  try { if (LOGO) document.getElementById('favicon').href = LOGO; } catch (e) {}
+  try { if (LOGO) { document.getElementById('favicon').href = LOGO; document.getElementById('touchicon').href = LOGO; } } catch (e) {}
 }
 async function loadBranding() {
   let cached = null;
@@ -323,6 +362,43 @@ function sigPad(canvas) {
   };
 }
 
+/* End-of-shift report as plain text, in the agency's usual format (for Telegram / chat) */
+function reportText(r) {
+  const n = v => (v === '' || v == null) ? '0' : String(v);
+  const out = [];
+  out.push("CHATTER'S REPORT");
+  out.push('Chatter: ' + r.chatter);
+  out.push('Date: ' + r.dateLong);
+  out.push('Shift: ' + (r.shift || '—') + (r.tz ? ' ' + r.tz : '') + ' (' + (Math.round((r.hours || 0) * 100) / 100) + ' hours)');
+  out.push('Model: ' + r.models.map(m => m.model).join(' | '));
+  out.push('');
+  r.models.forEach(m => {
+    out.push(m.model.toUpperCase() + ' SALES & TIPS GROSS SALES: ' + money(m.gross));
+    m.lines.forEach(l => out.push('- ' + l.fan + (l.type ? ' — ' + l.type : '') + ' — ' + money(l.amount) + (l.note ? ' (' + l.note + ')' : '')));
+    out.push('');
+  });
+  out.push('TOTAL GROSS SALES: ' + money(r.totalGross));
+  out.push('');
+  out.push('NOTES:');
+  r.models.forEach(m => {
+    out.push(m.model);
+    out.push('- ' + n(m.newFans) + ' new fan' + (n(m.newFans) === '1' ? '' : 's'));
+    out.push('- ' + n(m.renews) + ' renew' + (n(m.renews) === '1' ? '' : 's'));
+    String(m.notes || '').split(/\n+/).filter(Boolean).forEach(x => out.push('- ' + x.replace(/^[-•]\s*/, '')));
+    out.push('');
+  });
+  if (r.generalNotes) { out.push('—————'); out.push(r.generalNotes); }
+  return out.join('\n').trim();
+}
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); toast('Report copied. Paste it in your group chat.'); }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('Report copied.'); } catch (x) { toast('Could not copy. Select and copy manually.', 'err'); }
+    ta.remove();
+  }
+}
+
 function stepsHtml(n) {
   return '<div class="steps">' + ['Sign offer letter', 'HR handbook', 'Set password'].map((t, i) => `<span class="${i + 1 === n ? 'on' : ''}">${i + 1} · ${t}</span>`).join('') + '</div>';
 }
@@ -424,6 +500,7 @@ function logout(silent) {
   if (S.token && !silent) api('logout').catch(() => {});
   store.del('mz_token'); store.del('mz_role'); store.del('mz_name');
   S.token = null; S.role = null; S.data = null; S.emps = null; S.tab = null; S.owner = false; S.me = null;
+  document.body.className = '';
   renderLogin();
 }
 
@@ -529,6 +606,7 @@ function renderSetPassword(isAdmin) {
 
 /* ---------------- shell ---------------- */
 function shell(tabs, sub) {
+  document.body.className = S.role === 'admin' ? 'is-admin' : 'is-agent';
   $('#app').innerHTML = `
   <header class="top">
     <div class="brand">${logoHtml()}<div><b>${AGENCY}</b><small>${sub}</small></div></div>
@@ -567,13 +645,19 @@ function openChangePw() {
    EMPLOYEE PORTAL
    ============================================================ */
 function showEmp() {
-  shell([['today', 'Today'], ['week', 'My Week'], ['requests', 'Requests'], ['payslips', 'Payslips'], ['hr', 'HR']], esc(W) + ' Portal');
+  shell([['today', 'Today'], ['report', 'Report'], ['week', 'My Pay'], ['requests', 'Requests'], ['payslips', 'Payslips'], ['hr', 'HR']], esc(W) + ' Portal');
   S.data = null;
   go(S.tab && EMP[S.tab] ? S.tab : 'today');
 }
+/* Agent saves: the server sends the fresh dashboard back with the save, so there's no second wait */
+async function empAct(action, payload) {
+  const d = await api(action, payload);
+  if (d && d.dash) { S.data = d.dash; badge('hr', S.data.hrAlerts); badge('report', S.data.reportDone ? 0 : (S.data.openShift || S.data.todayShifts.length ? 1 : 0)); EMP[S.tab](); }
+  return d;
+}
 async function empRefresh() {
   if (!S.data) loading();
-  try { S.data = await api('empDashboard'); badge('hr', S.data.hrAlerts); EMP[S.tab](); }
+  try { S.data = await api('empDashboard'); badge('hr', S.data.hrAlerts); badge('report', S.data.reportDone ? 0 : (S.data.openShift || S.data.todayShifts.length ? 1 : 0)); EMP[S.tab](); }
   catch (e) { $('#view').innerHTML = errBox(e.message); }
 }
 
@@ -591,37 +675,40 @@ const EMP = {
         ${o ? `
           <div class="status on">● On duty since ${esc(o.since)}</div>
           <div class="timer" data-since="${o.clockInAt}">${clockStr(Date.now() - o.clockInAt)}</div>
-          <div class="muted">Account / model: <b style="color:var(--text)">${esc(o.account)}</b></div>
+          ${o.account ? `<div class="muted">Models: <b style="color:var(--text)">${esc(o.account)}</b></div>` : ''}
           <button class="btn danger big" onclick="run(this,doClockOut)">Clock out</button>`
         : `
           <div class="status off">● Off duty</div>
           <form id="ciForm">
-            <label>Account / model you're working on<input name="account" list="accs" required placeholder="e.g. account or model name"></label>
+            ${d.models.length ? `<div class="muted small" style="margin-bottom:6px">Your models: <b style="color:var(--text)">${esc(d.models.join(' | '))}</b></div>`
+              : `<label>Model(s) you're working on<input name="account" list="accs" placeholder="optional"></label>`}
             <button class="btn green big">Clock in</button>
           </form>`}
       </div>
       <div class="stack">
         ${stat('Hours today', o ? `<span data-live="${o.clockInAt}" data-base="${d.todayHours}">${hm(d.todayHours)}</span>` : hm(d.todayHours), o ? 'Includes current shift' : 'Completed shifts')}
-        ${stat('Sales today', money(d.todaySalesTotal), d.todaySalesCount + ' sale(s) recorded')}
-        ${stat('Expected salary this week', money(d.week.expectedPay), esc(d.week.label), 'gold')}
+        ${stat('Sales today (gross)', money(d.todaySalesTotal), 'Net ' + money(d.todayNetTotal) + ' · ' + d.todaySalesCount + ' sale(s)')}
+        ${stat('Expected salary this period', money(d.week.expectedPay), esc(d.week.label), 'gold')}
       </div>
     </div>
 
     <div class="card"><h3>Add a sale</h3>
       <form id="saleForm" class="fgrid">
-        <label>Customer name<input name="customer" required maxlength="120"></label>
-        <label>Amount (USD)<input name="amount" type="number" min="0.01" step="0.01" required></label>
-        <label>Account / model<input name="account" list="accs" value="${o ? esc(o.account) : ''}"></label>
-        <label class="full">Description<input name="description" maxlength="500" placeholder="What was sold"></label>
+        ${d.models.length ? `<label>Model<select name="account" required>${d.models.length > 1 ? '<option value="">Select…</option>' : ''}${d.models.map(m => `<option ${S.lastModel === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></label>`
+          : `<label>Model<input name="account" list="accs" value="${esc(S.lastModel || '')}"></label>`}
+        <label>Type<select name="type">${d.saleTypes.map(t => `<option ${S.lastType === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>
+        <label>Fan / customer<input name="customer" required maxlength="120" placeholder="e.g. @username"></label>
+        <label>Amount (gross $)<input name="amount" type="number" min="0.01" step="0.01" inputmode="decimal" required></label>
+        <label class="full">Note (optional)<input name="description" maxlength="500" placeholder="e.g. sexting PPV, custom video"></label>
         <div class="full"><button class="btn">Save sale</button></div>
       </form>
     </div>
 
     <div class="card"><h3>Today's sales <span class="pill">${money(d.todaySalesTotal)}</span></h3>
-      <div class="tw"><table><thead><tr><th>Time</th><th>Customer</th><th>Description</th><th>Account</th><th class="n">Amount</th></tr></thead><tbody>
-      ${d.todaySales.length ? d.todaySales.map(s => `<tr><td>${esc(s.time)}</td><td>${esc(s.customer)}</td><td class="wrap">${esc(s.description)}</td><td>${esc(s.account)}</td><td class="n">${money(s.amount)}</td></tr>`).join('')
-        : '<tr><td colspan="5" class="empty">No sales yet today.</td></tr>'}
-      ${d.todaySales.length ? `<tr class="tot"><td colspan="4">Total</td><td class="n">${money(d.todaySalesTotal)}</td></tr>` : ''}
+      <div class="tw"><table><thead><tr><th>Time</th><th>Model</th><th>Fan</th><th>Type</th><th>Note</th><th class="n">Gross</th></tr></thead><tbody>
+      ${d.todaySales.length ? d.todaySales.map(s => `<tr><td>${esc(s.time)}</td><td>${esc(s.account)}</td><td>${esc(s.customer)}</td><td>${esc(s.type || '—')}</td><td class="wrap">${esc(s.description)}</td><td class="n">${money(s.amount)}</td></tr>`).join('')
+        : '<tr><td colspan="6" class="empty">No sales yet today.</td></tr>'}
+      ${d.todaySales.length ? `<tr class="tot"><td colspan="5">Total gross · net ${money(d.todayNetTotal)}</td><td class="n">${money(d.todaySalesTotal)}</td></tr>` : ''}
       </tbody></table></div>
     </div>
 
@@ -633,25 +720,30 @@ const EMP = {
       <div style="margin-top:10px"><button class="ghost sm" onclick="fixTime('')">+ Add a missed shift</button></div>
     </div>`;
     const ci = $('#ciForm');
-    if (ci) ci.onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('clockIn', { account: f.account }); toast('Clocked in. Have a great shift!'); await empRefresh(); }); };
-    $('#saleForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('addSale', f); toast('Sale saved.'); await empRefresh(); }); };
+    if (ci) ci.onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await empAct('clockIn', { account: f.account || '' }); toast('Clocked in. Have a great shift!'); }); };
+    $('#saleForm').onsubmit = e => {
+      e.preventDefault(); const f = fd(e.target);
+      S.lastModel = f.account; S.lastType = f.type; // remember for the next sale
+      run(e.target.querySelector('button'), async () => { await empAct('addSale', f); toast('Sale saved: ' + money(f.amount)); });
+    };
   },
 
   week() {
     const w = S.data.week;
     $('#view').innerHTML = `
-    <div class="toolbar"><h2>This week</h2><span class="pill">${esc(w.label)}</span><button class="ghost sm" onclick="run(this,empRefresh)">Refresh</button></div>
+    <div class="toolbar"><h2>This pay period</h2><span class="pill">${esc(w.label)}</span><button class="ghost sm" onclick="run(this,empRefresh)">Refresh</button></div>
     <div class="stats">
-      ${stat('Hours this week', hm(w.hours))}
-      ${stat('Sales this week', money(w.sales))}
+      ${stat('Hours this period', hm(w.hours))}
+      ${stat('Gross sales this period', money(w.sales))}
+      ${stat('Net sales this period', money(w.netSales), d0feeNote())}
       ${stat('Expected salary', money(w.expectedPay), 'Final amount is on your payslip', 'gold')}
     </div>
     <div class="card"><h3>Daily breakdown</h3>
-      <div class="tw"><table><thead><tr><th>Day</th><th>Schedule</th><th>Attendance</th><th class="n">Hours</th><th class="n">Sales #</th><th class="n">Sales</th></tr></thead><tbody>
-      ${w.days.map(x => `<tr><td>${esc(x.label)}${x.date === S.data.today ? ' <span class="pill">today</span>' : ''}</td><td class="daycell">${esc(x.att.sched || 'Off')}</td><td>${attPill(x.att)}</td><td class="n">${hm(x.hours)}</td><td class="n">${x.count}</td><td class="n">${money(x.sales)}</td></tr>`).join('')}
-      <tr class="tot"><td colspan="3">Total</td><td class="n">${hm(w.hours)}</td><td class="n">${w.days.reduce((a, x) => a + x.count, 0)}</td><td class="n">${money(w.sales)}</td></tr>
+      <div class="tw"><table><thead><tr><th>Day</th><th>Schedule</th><th>Attendance</th><th class="n">Hours</th><th class="n">Sales #</th><th class="n">Gross</th><th class="n">Net</th></tr></thead><tbody>
+      ${w.days.map(x => `<tr><td>${esc(x.label)}${x.date === S.data.today ? ' <span class="pill">today</span>' : ''}</td><td class="daycell">${esc(x.att.sched || 'Off')}</td><td>${attPill(x.att)}</td><td class="n">${hm(x.hours)}</td><td class="n">${x.count}</td><td class="n">${money(x.sales)}</td><td class="n">${money(x.net)}</td></tr>`).join('')}
+      <tr class="tot"><td colspan="3">Total</td><td class="n">${hm(w.hours)}</td><td class="n">${w.days.reduce((a, x) => a + x.count, 0)}</td><td class="n">${money(w.sales)}</td><td class="n">${money(w.netSales)}</td></tr>
       </tbody></table></div>
-      <p class="muted small" style="margin-bottom:0">Expected salary is based on completed shifts and recorded sales. Pending time corrections are added once approved.</p>
+      <p class="muted small" style="margin-bottom:0">Expected salary is based on completed shifts and net sales. Pending time corrections are added once approved.</p>
     </div>`;
   },
 
@@ -667,7 +759,7 @@ const EMP = {
             <label>Clock in<input name="clockIn" id="teIn" type="datetime-local" required></label>
             <label>Clock out<input name="clockOut" id="teOut" type="datetime-local" required></label>
           </div>
-          <label>Account / model<input name="account" id="teAcc" list="accs2" required></label>
+          <label>Model(s)<input name="account" id="teAcc" list="accs2" placeholder="optional"></label>
           <label>Reason<textarea name="reason" required placeholder="e.g. Forgot to clock in, internet went down"></textarea></label>
           <button class="btn">Send for approval</button>
         </form>
@@ -695,9 +787,54 @@ const EMP = {
     };
     $('#teShift').onchange = e => fill(e.target.value);
     if (pre && pre.id) fill(pre.id);
-    $('#teForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('requestTimeEdit', f); toast('Sent to your admin for approval.'); await empRefresh(); }); };
-    $('#doForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('requestDayOff', f); toast('Day off request sent.'); await empRefresh(); }); };
+    $('#teForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await empAct('requestTimeEdit', f); toast('Sent to your admin for approval.'); }); };
+    $('#doForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await empAct('requestDayOff', f); toast('Day off request sent.'); }); };
     if (pre) $('#teForm').scrollIntoView({ behavior: 'smooth' });
+  },
+
+  async report() {
+    $('#view').innerHTML = '<div class="loading"><span class="spin"></span></div>';
+    let r;
+    try { r = await api('shiftReport', { date: S.repDate || '' }); } catch (e) { $('#view').innerHTML = errBox(e.message); return; }
+    S.rep = r;
+    $('#view').innerHTML = `
+      <div class="toolbar"><h2>End-of-shift report</h2>
+        <select id="repDate" style="width:auto;margin:0">${r.recentDates.map(x => `<option value="${x.date}" ${x.date === r.date ? 'selected' : ''}>${esc(x.label)}</option>`).join('')}</select>
+        ${r.submittedAt ? `<span class="st Approved">Sent ${esc(r.submittedAt)}</span>` : '<span class="st Pending">Not sent yet</span>'}</div>
+      <div class="stats">
+        ${stat('Shift', esc(r.shift || '—'), (r.hours ? hm(r.hours) : '0h') + (r.tz ? ' · ' + esc(r.tz) : ''))}
+        ${stat('Total gross sales', money(r.totalGross), r.models.length + ' model(s)', 'gold')}
+      </div>
+      <form id="repForm">
+        ${r.models.length ? r.models.map((m, i) => `<div class="card rep-model">
+          <h3>${esc(m.model)} <span class="pill">${money(m.gross)} gross</span></h3>
+          ${m.lines.length ? `<div class="rep-lines">${m.lines.map(l => `<div class="rep-line"><span>${esc(l.fan)}${l.type ? ` <span class="muted small">· ${esc(l.type)}</span>` : ''}${l.note ? `<div class="muted small">${esc(l.note)}</div>` : ''}</span><b>${money(l.amount)}</b></div>`).join('')}</div>`
+            : '<div class="muted small" style="margin-bottom:10px">No sales recorded for this model.</div>'}
+          <div class="fgrid">
+            <label>New fans<input type="number" min="0" inputmode="numeric" data-i="${i}" data-k="newFans" value="${esc(m.newFans)}"></label>
+            <label>Renews<input type="number" min="0" inputmode="numeric" data-i="${i}" data-k="renews" value="${esc(m.renews)}"></label>
+            <label class="full">Notes<textarea data-i="${i}" data-k="notes" placeholder="Traffic, active spenders, follow-ups…">${esc(m.notes)}</textarea></label>
+          </div></div>`).join('')
+          : `<div class="note">No models assigned and no sales recorded yet. Ask your admin to add your models, or record a sale first.</div>`}
+        <div class="card"><label>General notes<textarea name="generalNotes" placeholder="Overall traffic, what to do better next shift…">${esc(r.generalNotes || '')}</textarea></label>
+          <div class="rep-acts"><button type="button" class="ghost" id="repCopy">Copy report</button><button class="btn" id="repSend">${r.submittedAt ? 'Update report' : 'Send report'}</button></div>
+        </div>
+      </form>`;
+    $('#repDate').onchange = e => { S.repDate = e.target.value; EMP.report(); };
+    const collect = () => {
+      const models = r.models.map(m => ({ model: m.model }));
+      document.querySelectorAll('#repForm [data-i]').forEach(el => { models[+el.dataset.i][el.dataset.k] = el.value; });
+      return { date: r.date, models: models, generalNotes: $('#repForm textarea[name=generalNotes]').value };
+    };
+    $('#repCopy').onclick = () => {
+      const c = collect();
+      const merged = Object.assign({}, r, { generalNotes: c.generalNotes, models: r.models.map((m, i) => Object.assign({}, m, c.models[i])) });
+      copyText(reportText(merged));
+    };
+    $('#repSend').onclick = e => run(e.currentTarget, async () => {
+      await empAct('submitReport', collect());
+      toast('Report sent to your admin.');
+    });
   },
 
   async hr() {
@@ -711,7 +848,7 @@ const EMP = {
           </div>
           <div style="margin-top:8px;white-space:pre-wrap">${esc(w.details)}</div>
           <div style="margin-top:10px">${w.ack ? `<span class="muted small">Acknowledged ${esc(w.ack)}</span>`
-            : w.status === 'Active' ? `<button class="btn sm" onclick="run(this,async()=>{await api('ackWarning',{id:'${w.id}'});toast('Notice acknowledged.');await empRefresh();})">I acknowledge this notice</button>` : ''}</div>
+            : w.status === 'Active' ? `<button class="btn sm" onclick="run(this,async()=>{await empAct('ackWarning',{id:'${w.id}'});toast('Notice acknowledged.');})">I acknowledge this notice</button>` : ''}</div>
         </div>`).join('')}</div>` : ''}
       <div class="card"><h3>HR Handbook ${hb.current ? `<span class="st Approved">Acknowledged ${esc(hb.ackAt)}</span>` : '<span class="st Pending">Updated — please read and acknowledge</span>'}</h3>
         <div id="hbBody" class="loading"><span class="spin"></span></div>
@@ -735,7 +872,12 @@ const EMP = {
   }
 };
 
-async function doClockOut() { await api('clockOut'); toast('Clocked out. Good work today!'); await empRefresh(); }
+function d0feeNote() { const f = S.data && S.data.feePct; return f ? 'After ' + f + '% fees' : 'Commission is based on net'; }
+async function doClockOut() {
+  await empAct('clockOut');
+  toast('Clocked out. Please send your end-of-shift report.');
+  go('report');
+}
 function fixTime(id) { S.prefill = { id: id }; go('requests'); }
 
 function reqCard(r, admin) {
@@ -746,7 +888,7 @@ function reqCard(r, admin) {
   if (r.status === 'Pending') {
     acts = admin
       ? `<button class="btn green sm" onclick="reviewReq('${r.id}','Approved')">Approve</button><button class="btn danger sm" onclick="reviewReq('${r.id}','Denied')">Deny</button>`
-      : `<button class="ghost sm" onclick="run(this,async()=>{await api('cancelRequest',{reqId:'${r.id}'});toast('Request cancelled.');await empRefresh();})">Cancel</button>`;
+      : `<button class="ghost sm" onclick="run(this,async()=>{await empAct('cancelRequest',{reqId:'${r.id}'});toast('Request cancelled.');})">Cancel</button>`;
   }
   return `<div class="req"><div style="flex:1;min-width:240px">
       <div>${admin ? `<b>${esc(r.name)}</b> · ` : ''}${title}</div>
@@ -760,31 +902,31 @@ function reqCard(r, admin) {
    ADMIN BOARD
    ============================================================ */
 function showAdmin() {
-  shell([['dash', 'Dashboard'], ['payroll', 'Payroll'], ['requests', 'Requests'], ['employees', esc(W) + 's'], ['kpi', 'KPI'], ['issues', 'Issues'], ['analytics', 'Analytics'], ['hr', 'HR'], ['admins', 'Admins']], 'Admin Board');
+  shell([['dash', 'Dashboard'], ['payroll', 'Payroll'], ['reports', 'Reports'], ['requests', 'Requests'], ['employees', esc(W) + 's'], ['kpi', 'KPI'], ['issues', 'Issues'], ['analytics', 'Analytics'], ['hr', 'HR'], ['admins', 'Admins']], 'Admin Board');
   go(S.tab && ADMIN[S.tab] ? S.tab : 'dash');
 }
 async function loadEmps(force) { if (!S.emps || force) S.emps = await api('listEmployees'); return S.emps; }
 const empOptions = (sel) => (S.emps || []).filter(e => e.status === 'Active').map(e => `<option value="${e.empId}" ${sel === e.empId ? 'selected' : ''}>${esc(e.name)}</option>`).join('');
 
 function payRuleCard() {
-  const rate = Number(B.hourlyRate) || 0, comm = Number(B.commissionRate) || 0, sp = SP(), ap = AP();
-  const cp = +(comm * 100).toFixed(2), exH = 40, exS = 5000;
-  const exHourly = exH * rate, exComm = exS * comm, exTot = exHourly + exComm, exAgent = exTot * sp / 100;
+  const rate = Number(B.hourlyRate) || 0, comm = Number(B.commissionRate) || 0, fee = Number(B.feeRate) || 0, sp = SP(), ap = AP();
+  const cp = +(comm * 100).toFixed(2), fp = +(fee * 100).toFixed(2), exH = 40, exS = 5000, exN = exS * (1 - fee);
+  const exHourly = exH * rate, exComm = exN * comm, exTot = exHourly + exComm, exAgent = exTot * sp / 100;
   const w = esc(W.toLowerCase());
   return `<details class="card rule" open>
-    <summary><b>How ${w} salary is computed</b> <span class="muted small">(every weekly cutoff, Mon–Sun${B.timezoneLabel ? ', ' + esc(B.timezoneLabel) : ''})</span></summary>
+    <summary><b>How ${w} salary is computed</b> <span class="muted small">(every cutoff: ${B.period === 'semimonthly' ? '1st–15th and 16th–end of month' : 'weekly, Mon–Sun'}${B.timezoneLabel ? ', ' + esc(B.timezoneLabel) : ''})</span></summary>
     <div class="rule-grid">
       <div class="rule-step"><span class="num">1</span><div><b>Hourly pay</b><div class="muted">Total hours × ${money(rate)}</div></div></div>
-      <div class="rule-step"><span class="num">2</span><div><b>Commission</b><div class="muted">${cp}% of total sales</div></div></div>
+      <div class="rule-step"><span class="num">2</span><div><b>Commission</b><div class="muted">${cp}% of <b>net</b> sales (gross sales minus the ${w}'s fees %)</div></div></div>
       <div class="rule-step"><span class="num">3</span><div><b>Total (100%)</b><div class="muted">Hourly pay + commission</div></div></div>
       <div class="rule-step"><span class="num">4</span><div><b>Split</b><div class="muted">${sp}% goes to the ${w} · ${ap}% goes to ${esc(AGENCY)}</div></div></div>
     </div>
     <div class="rule-ex">
-      <b>Example:</b> ${exH} hours and ${money(exS)} in sales →
-      Hourly ${exH} × ${money(rate)} = <b>${money(exHourly)}</b> · Commission ${cp}% × ${money(exS)} = <b>${money(exComm)}</b> · Total <b>${money(exTot)}</b> →
+      <b>Example:</b> ${exH} hours and ${money(exS)} gross sales${fee ? ` (${money(exN)} net after ${fp}% fees)` : ''} →
+      Hourly ${exH} × ${money(rate)} = <b>${money(exHourly)}</b> · Commission ${cp}% × ${money(exN)} net = <b>${money(exComm)}</b> · Total <b>${money(exTot)}</b> →
       ${esc(W)} salary (${sp}%) <b class="gold-t">${money(exAgent)}</b> · ${esc(AGENCY)} cut (${ap}%) <b class="gold-t">${money(exTot - exAgent)}</b>
     </div>
-    <p class="muted small" style="margin:10px 0 0">${esc(W)}s only see their ${sp}% salary in their portal and on their payslip. If one of your ${w}s has a different rate, it shows under their name in the table.</p>
+    <p class="muted small" style="margin:10px 0 0">${esc(W)}s only see their ${sp}% salary in their portal and on their payslip. Each ${w}'s rates and fees % show under their name in the table, and can be changed in the ${esc(W)}s tab.</p>
   </details>`;
 }
 
@@ -808,23 +950,23 @@ const ADMIN = {
         ${stat('Late ' + (d.isToday ? 'today' : 'that day'), t.lateToday || 0, 'Based on schedules')}
         ${stat('No-show ' + (d.isToday ? 'today' : 'that day'), t.noShowToday || 0, 'Scheduled but never clocked in')}
         ${stat('Hours (' + (d.isToday ? 'today' : 'day') + ')', hm(t.dayHours))}
-        ${stat('Sales (' + (d.isToday ? 'today' : 'day') + ')', money(t.daySales))}
-        ${stat('Week hours', hm(t.weekHours), esc(d.weekLabel))}
-        ${stat('Week sales', money(t.weekSales), esc(d.weekLabel))}
-        ${stat('Week total (100%)', money(t.weekGross), 'Hourly + commission', 'gold')}
-        ${stat(esc(W) + 's\u2019 salary (' + SP() + '%)', money(t.weekPay), 'This week so far')}
-        ${stat(esc(AGENCY) + ' share (' + AP() + '%)', money(t.weekAgency), 'This week so far', 'gold')}
+        ${stat('Gross sales (' + (d.isToday ? 'today' : 'day') + ')', money(t.daySales), 'Net ' + money(t.dayNet))}
+        ${stat('Period hours', hm(t.weekHours), esc(d.weekLabel))}
+        ${stat('Period gross sales', money(t.weekSales), 'Net ' + money(t.weekNet))}
+        ${stat('Period total (100%)', money(t.weekGross), 'Hourly + commission on net', 'gold')}
+        ${stat(esc(W) + 's\u2019 salary (' + SP() + '%)', money(t.weekPay), 'This period so far')}
+        ${stat(esc(AGENCY) + ' share (' + AP() + '%)', money(t.weekAgency), 'This period so far', 'gold')}
       </div>
       ${t.pending ? `<div class="card" style="border-color:rgba(245,165,36,.45)"><b>${t.pending} pending request(s)</b> <span class="muted">waiting for your approval.</span> <button class="ghost sm" onclick="S.reqFilter='Pending';go('requests')">Review</button></div>` : ''}
       <div class="card"><h3>${esc(W)}s · ${esc(d.dateLabel)}</h3>
-        <div class="tw"><table><thead><tr><th>${esc(W)}</th><th>Status</th><th>Shift</th><th>Account</th><th class="n">Hours</th><th class="n">Sales</th><th class="n">Week hrs</th><th class="n">Week sales</th><th class="n">Week salary</th><th></th></tr></thead><tbody>
+        <div class="tw"><table><thead><tr><th>${esc(W)}</th><th>Status</th><th>Shift</th><th>Account</th><th class="n">Hours</th><th class="n">Sales</th><th class="n">Period hrs</th><th class="n">Period sales</th><th class="n">Period salary</th><th></th></tr></thead><tbody>
         ${d.employees.length ? d.employees.map(e => `<tr>
           <td><b>${esc(e.name)}</b><div class="muted small">${esc(e.position || '')}</div></td>
           <td><span class="st ${STATUS_CLS[e.status] || 'none'}">${esc(e.status)}</span>${e.att && (e.att.flag === 'late' || e.att.flag === 'noshow') ? `<div style="margin-top:4px">${attPill(e.att)}</div>` : ''}</td>
           <td>${e.clockInAt ? `since ${esc(e.since)} · <span data-since="${e.clockInAt}">${clockStr(Date.now() - e.clockInAt)}</span>` : '<span class="muted">—</span>'}${e.att && e.att.sched ? `<div class="muted small">Shift ${esc(e.att.sched)}</div>` : ''}</td>
           <td>${esc(e.account || '—')}</td>
-          <td class="n">${hm(e.hours)}</td><td class="n">${money(e.sales)}</td>
-          <td class="n">${hm(e.weekHours)}</td><td class="n">${money(e.weekSales)}</td><td class="n gold-t">${money(e.weekPay)}</td>
+          <td class="n">${hm(e.hours)}</td><td class="n">${money(e.sales)}<div class="muted small">net ${money(e.net)}</div></td>
+          <td class="n">${hm(e.weekHours)}</td><td class="n">${money(e.weekSales)}<div class="muted small">net ${money(e.weekNet)}</div></td><td class="n gold-t">${money(e.weekPay)}</td>
           <td class="n">${e.clockInAt ? `<button class="ghost sm" onclick="adminClockOut('${e.empId}','${esc(e.name).replace(/'/g, '')}')">Clock out</button>` : ''}</td></tr>`).join('')
           : `<tr><td colspan="10" class="empty">No ${esc(W.toLowerCase())}s yet. Add one in the ${esc(W)}s tab.</td></tr>`}
         </tbody></table></div>
@@ -847,29 +989,31 @@ const ADMIN = {
       const d = await api('weeklyPayroll', { date: S.payDate || '' });
       S.payDate = d.weekStart; S.pay = d; const t = d.totals;
       $('#view').innerHTML = `
-      <div class="toolbar"><h2>Weekly payroll</h2>
-        <button class="ghost sm" onclick="shiftWeek(-7)">‹ Prev</button>
+      <div class="toolbar"><h2>Payroll</h2><span class="muted small">${esc(d.periodName)}</span>
+        <button class="ghost sm" onclick="paySettingsModal()">Pay settings</button>
+        <button class="ghost sm" onclick="S.payDate='${d.prevDate}';go('payroll')">‹ Prev</button>
         <span class="pill">${esc(d.label)}</span>
-        <button class="ghost sm" onclick="shiftWeek(7)">Next ›</button>
+        <button class="ghost sm" onclick="S.payDate='${d.nextDate}';go('payroll')">Next ›</button>
         <input type="date" id="payDate" value="${d.weekStart}" style="width:auto;margin:0"></div>
       ${payRuleCard()}
       <div class="stats">
         ${stat('Total hours', hm(t.hours))}
-        ${stat('Total sales', money(t.sales))}
+        ${stat('Gross sales', money(t.sales))}
+        ${stat('Net sales', money(t.netSales), 'Commission is paid on this')}
         ${stat('Total (100%)', money(t.gross), money(t.hourlyPay) + ' hourly + ' + money(t.commission) + ' commission', 'gold')}
         ${stat(esc(W) + 's\u2019 salary (' + SP() + '%)', money(t.employeePay))}
         ${stat(esc(AGENCY) + ' share (' + AP() + '%)', money(t.agencyShare), '', 'gold')}
       </div>
-      <div class="card"><h3>Breakdown <span class="muted small">Total = hours × rate + sales × commission · Salary = total × ${esc(W.toLowerCase())} share</span></h3>
-        <div class="tw"><table><thead><tr><th>${esc(W)}</th><th class="n">Hours</th><th class="n">Sales</th><th class="n">Hourly</th><th class="n">Commission</th><th class="n">Total (100%)</th><th class="n">${esc(W)} salary</th><th class="n">${esc(AGENCY)} share</th><th>Payslip</th></tr></thead><tbody>
+      <div class="card"><h3>Breakdown <span class="muted small">Total = hours × rate + net sales × commission · Salary = total × ${esc(W.toLowerCase())} share</span></h3>
+        <div class="tw"><table><thead><tr><th>${esc(W)}</th><th class="n">Hours</th><th class="n">Gross sales</th><th class="n">Net sales</th><th class="n">Hourly</th><th class="n">Commission</th><th class="n">Total (100%)</th><th class="n">${esc(W)} salary</th><th class="n">${esc(AGENCY)} share</th><th>Payslip</th></tr></thead><tbody>
         ${d.employees.length ? d.employees.map(e => `<tr>
-          <td><b>${esc(e.name)}</b>${e.status !== 'Active' ? ' <span class="st Inactive">Inactive</span>' : ''}<div class="muted small">$${e.rates.rate}/h · ${+(e.rates.comm * 100).toFixed(2)}% · ${+(e.rates.share * 100).toFixed(0)}/${+(100 - e.rates.share * 100).toFixed(0)}</div></td>
-          <td class="n">${hm(e.hours)}</td><td class="n">${money(e.sales)}</td><td class="n">${money(e.hourlyPay)}</td><td class="n">${money(e.commission)}</td>
+          <td><b>${esc(e.name)}</b>${e.status !== 'Active' ? ' <span class="st Inactive">Inactive</span>' : ''}<div class="muted small">$${e.rates.rate}/h · ${+(e.rates.comm * 100).toFixed(2)}% of net · fees ${+(e.rates.fee * 100).toFixed(2)}% · ${+(e.rates.share * 100).toFixed(0)}/${+(100 - e.rates.share * 100).toFixed(0)}</div></td>
+          <td class="n">${hm(e.hours)}</td><td class="n">${money(e.sales)}</td><td class="n">${money(e.netSales)}</td><td class="n">${money(e.hourlyPay)}</td><td class="n">${money(e.commission)}</td>
           <td class="n"><b>${money(e.gross)}</b></td><td class="n gold-t">${money(e.employeePay)}</td><td class="n">${money(e.agencyShare)}</td>
           <td>${e.payslip ? `<span class="st Approved">Sent</span> <span class="muted small">${esc(e.payslip.sentAt)}${e.payslip.by ? ' · by ' + esc(e.payslip.by) : ''}</span><br><button class="ghost sm" onclick="run(this,()=>api('adminPayslipPdf',{id:'${e.payslip.id}'}).then(downloadB64))">PDF</button> <button class="ghost sm" onclick="payslipModal('${e.empId}')">Redo</button>`
             : `<button class="btn sm" onclick="payslipModal('${e.empId}')">Generate</button>`}</td></tr>`).join('')
-          : `<tr><td colspan="9" class="empty">No ${esc(W.toLowerCase())}s.</td></tr>`}
-        ${d.employees.length ? `<tr class="tot"><td>Total</td><td class="n">${hm(t.hours)}</td><td class="n">${money(t.sales)}</td><td class="n">${money(t.hourlyPay)}</td><td class="n">${money(t.commission)}</td><td class="n">${money(t.gross)}</td><td class="n">${money(t.employeePay)}</td><td class="n">${money(t.agencyShare)}</td><td></td></tr>` : ''}
+          : `<tr><td colspan="10" class="empty">No ${esc(W.toLowerCase())}s.</td></tr>`}
+        ${d.employees.length ? `<tr class="tot"><td>Total</td><td class="n">${hm(t.hours)}</td><td class="n">${money(t.sales)}</td><td class="n">${money(t.netSales)}</td><td class="n">${money(t.hourlyPay)}</td><td class="n">${money(t.commission)}</td><td class="n">${money(t.gross)}</td><td class="n">${money(t.employeePay)}</td><td class="n">${money(t.agencyShare)}</td><td></td></tr>` : ''}
         </tbody></table></div>
       </div>`;
       $('#payDate').onchange = e => { S.payDate = e.target.value; go('payroll'); };
@@ -897,8 +1041,8 @@ const ADMIN = {
       <div class="card"><div class="tw"><table><thead><tr><th>${esc(W)}</th><th>Position</th><th>Pay terms</th><th>Offer letter</th><th>Login</th><th>Status</th><th></th></tr></thead><tbody>
       ${list.length ? list.map(e => `<tr>
         <td><b>${esc(e.name)}</b><div class="muted small">${esc(e.email)}</div></td>
-        <td>${esc(e.position)}<div class="muted small">Start ${esc(e.startDate)}${e.addedBy ? ' · added by ' + esc(e.addedBy) : ''}</div></td>
-        <td>$${e.rates.rate}/h + ${+(e.rates.comm * 100).toFixed(2)}%<div class="muted small">${+(e.rates.share * 100).toFixed(0)}% ${esc(W.toLowerCase())} / ${+(100 - e.rates.share * 100).toFixed(0)}% agency</div></td>
+        <td>${esc(e.position)}${e.models && e.models.length ? `<div class="small">${esc(e.models.join(' | '))}</div>` : ''}<div class="muted small">Start ${esc(e.startDate)}${e.addedBy ? ' · added by ' + esc(e.addedBy) : ''}</div></td>
+        <td>$${e.rates.rate}/h + ${+(e.rates.comm * 100).toFixed(2)}% of net<div class="muted small">Fees ${+(e.rates.fee * 100).toFixed(2)}% · ${+(e.rates.share * 100).toFixed(0)}% ${esc(W.toLowerCase())} / ${+(100 - e.rates.share * 100).toFixed(0)}% agency</div></td>
         <td>${e.agreementSigned ? `<span class="st Approved">Signed</span><div class="muted small">${esc(e.signedAt)}${e.agreementUrl ? ` · <a href="${esc(e.agreementUrl)}" target="_blank" rel="noopener">View</a>` : ''}</div>` : '<span class="st Pending">Waiting</span>'}</td>
         <td>${e.passwordSet ? '<span class="st Active">Active</span>' : '<span class="st Pending">Invite sent</span>'}</td>
         <td><span class="st ${e.status}">${e.status}</span>${e.onDuty ? ' <span class="st on">On duty</span>' : ''}</td>
@@ -906,6 +1050,7 @@ const ADMIN = {
           <button class="ghost sm" onclick="run(this,async()=>{await api('resendInvite',{empId:'${e.empId}'});toast('New login sent to ${esc(e.email)}');go('employees')})">Resend login</button>
           ${e.sheetUrl ? `<a class="ghost sm" style="text-decoration:none;display:inline-block" href="${esc(e.sheetUrl)}" target="_blank" rel="noopener">Sheet</a>` : ''}
           <button class="ghost sm" onclick="run(this,async()=>{await api('setEmployeeStatus',{empId:'${e.empId}',status:'${e.status === 'Active' ? 'Inactive' : 'Active'}'});toast('Updated.');go('employees')})">${e.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
+          <button class="ghost sm" onclick="termsModal('${e.empId}')">Edit terms</button>
           ${e.status === 'Active' ? `<button class="ghost sm" style="color:var(--red)" onclick="warnModal('${e.empId}','Conduct','','Termination')">Terminate</button>` : ''}
         </td></tr>`).join('') : `<tr><td colspan="7" class="empty">No ${esc(W.toLowerCase())}s yet. Click "Add ${esc(W.toLowerCase())}" to send the first login.</td></tr>`}
       </tbody></table></div></div>`;
@@ -982,18 +1127,40 @@ const ADMIN = {
     try { await HR[seg](); } catch (e) { $('#hrView').innerHTML = errBox(e.message); }
   },
 
+  async reports() {
+    loading();
+    try {
+      const d = await api('listReports', { date: S.repAdminDate || '' });
+      S.repAdminDate = d.date; S.reps = d.reports;
+      $('#view').innerHTML = `
+      <div class="toolbar"><h2>Shift reports</h2><span class="pill">${esc(d.dateLabel)}</span>
+        <input type="date" id="repAdmDate" value="${d.date}" style="width:auto;margin:0"></div>
+      ${d.missing.length ? `<div class="note"><b>Not sent yet:</b> ${d.missing.map(m => esc(m.name) + ' (' + hm(m.hours) + ', ' + money(m.sales) + ')').join(', ')}</div>` : ''}
+      ${d.reports.length ? d.reports.map((r, i) => `<div class="card">
+        <h3><span>${esc(r.chatter)} <span class="muted small">· ${esc(r.shift || '—')} · ${hm(r.hours)}</span></span>
+          <span><span class="pill">${money(r.totalGross)} gross</span> <button class="ghost sm" onclick="copyText(reportText(S.reps[${i}]))">Copy</button></span></h3>
+        <div class="rep-grid">${r.models.map(m => `<div class="rep-mini"><b>${esc(m.model)}</b> <span class="gold-t">${money(m.gross)}</span>
+          <div class="muted small">${m.newFans === '' ? 0 : m.newFans} new · ${m.renews === '' ? 0 : m.renews} renew · ${m.lines.length} sale(s)</div>
+          ${m.notes ? `<div class="small" style="white-space:pre-wrap;margin-top:6px">${esc(m.notes)}</div>` : ''}</div>`).join('')}</div>
+        ${r.generalNotes ? `<div class="small" style="white-space:pre-wrap;margin-top:10px"><b>Notes:</b> ${esc(r.generalNotes)}</div>` : ''}
+        <div class="muted small" style="margin-top:8px">Sent ${esc(r.submittedAt)}</div></div>`).join('')
+        : '<div class="card"><div class="empty">No reports for this day yet.</div></div>'}`;
+      $('#repAdmDate').onchange = e => { S.repAdminDate = e.target.value; go('reports'); };
+    } catch (e) { $('#view').innerHTML = errBox(e.message); }
+  },
+
   async admins() {
     loading();
     try {
       const list = await api('listAdmins');
-      const owner = S.owner;
+      const owner = true; // admins have the same access as the owner
       $('#view').innerHTML = `
       <div class="toolbar"><h2>Admins</h2>${owner ? '<button class="btn" onclick="addAdminModal()">+ Add admin</button>' : ''}</div>
       <div class="card">
-        <p class="muted small" style="margin-top:0">Admins can see everything on this board, approve requests and run payroll. ${owner ? 'Only you (the owner) can add or remove admins.' : 'Only the owner can add or remove admins.'} "Emails" decides who gets request and offer-letter notifications.</p>
+        <p class="muted small" style="margin-top:0">Admins can see everything on this board, approve requests and run payroll. Every admin can add or turn off other admins. The owner login can't be turned off. "Emails" decides who gets request and offer-letter notifications.</p>
         <div class="tw"><table><thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Login</th><th>Emails</th><th>Added by</th><th></th></tr></thead><tbody>
         ${list.map(a => {
-          const canToggle = owner || a.you;
+          const canToggle = true;
           return `<tr>
           <td><b>${esc(a.name)}</b>${a.you ? ' <span class="pill">you</span>' : ''}<div class="muted small">${esc(a.email)}</div></td>
           <td>${a.role === 'Owner' ? '<span class="st Approved">Owner</span>' : '<span class="pill">Admin</span>'}</td>
@@ -1001,7 +1168,7 @@ const ADMIN = {
           <td>${a.passwordSet ? (a.lastLogin ? `<span class="muted small">Last login ${esc(a.lastLogin)}</span>` : '<span class="st Active">Active</span>') : '<span class="st Pending">Invite sent</span>'}</td>
           <td><label class="agree" style="margin:0"><input type="checkbox" ${a.notify ? 'checked' : ''} ${canToggle ? '' : 'disabled'} onchange="setNotify('${a.id}', this)"> ${a.notify ? 'On' : 'Off'}</label></td>
           <td>${esc(a.createdBy || '—')}</td>
-          <td class="n">${owner && a.role !== 'Owner' ? `
+          <td class="n">${a.role !== 'Owner' && !a.you ? `
             <button class="ghost sm" onclick="run(this,async()=>{await api('resendAdminInvite',{adminId:'${a.id}'});toast('New login sent to ${esc(a.email)}');go('admins')})">Resend login</button>
             <button class="ghost sm" onclick="run(this,async()=>{await api('setAdminStatus',{adminId:'${a.id}',status:'${a.status === 'Active' ? 'Inactive' : 'Active'}'});toast('Updated.');go('admins')})">${a.status === 'Active' ? 'Turn off' : 'Turn on'}</button>` : ''}</td></tr>`;
         }).join('')}
@@ -1019,7 +1186,7 @@ const ADMIN = {
       <div class="toolbar"><h2>Analytics</h2><span class="pill">${esc(d.rangeLabel)}</span>
         <div class="seg">${[7, 30, 90].map(n => `<button class="${S.days === n ? 'on' : ''}" onclick="S.days=${n};go('analytics')">${n} days</button>`).join('')}</div></div>
       <div class="stats">
-        ${stat('Hours', hm(tot.h))}${stat('Sales', money(tot.s))}
+        ${stat('Hours', hm(tot.h))}${stat('Gross sales', money(tot.s))}${stat('Net sales', money(d.perEmp.reduce((a, x) => a + x.netSales, 0)))}
         ${stat('Sales per hour', money(tot.h ? tot.s / tot.h : 0))}
         ${stat('Total (100%)', money(tot.g), '', 'gold')}${stat(esc(AGENCY) + ' share', money(tot.a), '', 'gold')}
       </div>
@@ -1028,9 +1195,9 @@ const ADMIN = {
         <div class="card"><h3>Daily hours</h3><div class="chart-box"><canvas id="cHours"></canvas></div></div>
       </div>
       <div class="card"><h3>Sales by ${esc(W.toLowerCase())}</h3><div class="chart-box" style="height:${Math.max(220, d.perEmp.length * 38)}px"><canvas id="cEmp"></canvas></div></div>
-      <div class="card"><h3>${esc(W)} performance</h3><div class="tw"><table><thead><tr><th>${esc(W)}</th><th class="n">Days worked</th><th class="n">Hours</th><th class="n">Sales #</th><th class="n">Sales</th><th class="n">Sales / hour</th><th class="n">Total (100%)</th><th class="n">${esc(W)} salary</th><th class="n">${esc(AGENCY)} share</th></tr></thead><tbody>
-      ${d.perEmp.length ? d.perEmp.map(x => `<tr><td>${esc(x.name)}</td><td class="n">${x.daysWorked}</td><td class="n">${hm(x.hours)}</td><td class="n">${x.count}</td><td class="n">${money(x.sales)}</td><td class="n">${money(x.salesPerHour)}</td><td class="n">${money(x.gross)}</td><td class="n gold-t">${money(x.employeePay)}</td><td class="n">${money(x.agencyShare)}</td></tr>`).join('')
-        : '<tr><td colspan="9" class="empty">No data yet.</td></tr>'}
+      <div class="card"><h3>${esc(W)} performance</h3><div class="tw"><table><thead><tr><th>${esc(W)}</th><th class="n">Days worked</th><th class="n">Hours</th><th class="n">Sales #</th><th class="n">Gross sales</th><th class="n">Net sales</th><th class="n">Sales / hour</th><th class="n">Total (100%)</th><th class="n">${esc(W)} salary</th><th class="n">${esc(AGENCY)} share</th></tr></thead><tbody>
+      ${d.perEmp.length ? d.perEmp.map(x => `<tr><td>${esc(x.name)}</td><td class="n">${x.daysWorked}</td><td class="n">${hm(x.hours)}</td><td class="n">${x.count}</td><td class="n">${money(x.sales)}</td><td class="n">${money(x.netSales)}</td><td class="n">${money(x.salesPerHour)}</td><td class="n">${money(x.gross)}</td><td class="n gold-t">${money(x.employeePay)}</td><td class="n">${money(x.agencyShare)}</td></tr>`).join('')
+        : '<tr><td colspan="10" class="empty">No data yet.</td></tr>'}
       </tbody></table></div></div>`;
       const opts = { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } };
       chart('cSales', { type: 'bar', data: { labels: d.series.map(x => x.label), datasets: [{ data: d.series.map(x => x.sales), backgroundColor: GOLD, borderRadius: 5 }] }, options: opts });
@@ -1272,7 +1439,7 @@ function setNotify(id, box) {
 
 function addAdminModal() {
   openModal(`<h3>Add admin</h3>
-    <p class="muted small" style="margin-top:-6px">They'll get an email with a temporary password and set their own on first login. Admins can do everything except manage other admins.</p>
+    <p class="muted small" style="margin-top:-6px">They'll get an email with a temporary password and set their own on first login. Admins have the same access as the owner.</p>
     <form id="aaForm">
       <label>Full name<input name="name" required maxlength="100"></label>
       <label>Email<input name="email" type="email" required></label>
@@ -1302,6 +1469,9 @@ function addEmpModal() {
       <label>Hourly rate ($)<input name="hourlyRate" type="number" step="0.01" min="0" value="${B.hourlyRate}"></label>
       <label>Commission (%)<input name="commissionPct" type="number" step="0.01" min="0" value="${+(B.commissionRate * 100).toFixed(2)}"></label>
       <label>${esc(W)} share (%)<input name="sharePct" type="number" step="1" min="1" max="100" value="${SP()}"></label>
+      <label>Fees / deductions (%)<input name="feePct" type="number" step="0.01" min="0" max="99" value="${+((Number(B.feeRate) || 0) * 100).toFixed(2)}"></label>
+      <label class="full">Models they handle<input name="models" placeholder="e.g. Mia, Shamaya, Viki, Shalina"></label>
+      <p class="full muted small" style="margin:-4px 0 6px">Fees are taken off gross sales to get <b>net sales</b> (e.g. platform fee). Commission is paid on net sales. Total pay = hours × rate + commission, split by the share.</p>
       <div class="full macts"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="btn">Add &amp; send login</button></div>
     </form>`);
   $('#aeForm').onsubmit = e => {
@@ -1314,12 +1484,58 @@ function addEmpModal() {
   };
 }
 
+function termsModal(empId) {
+  const e = (S.emps || []).find(x => x.empId === empId);
+  openModal(`<h3>Terms &amp; models · ${esc(e.name)}</h3>
+    <form id="tmForm" class="fgrid">
+      <label class="full">Position<input name="position" value="${esc(e.position)}"></label>
+      <label>Hourly rate ($)<input name="hourlyRate" type="number" step="0.01" min="0" value="${e.rates.rate}"></label>
+      <label>Commission (% of net)<input name="commissionPct" type="number" step="0.01" min="0" value="${+(e.rates.comm * 100).toFixed(2)}"></label>
+      <label>Fees / deductions (%)<input name="feePct" type="number" step="0.01" min="0" max="99" value="${+(e.rates.fee * 100).toFixed(2)}"></label>
+      <label>${esc(W)} share (%)<input name="sharePct" type="number" step="1" min="1" max="100" value="${+(e.rates.share * 100).toFixed(0)}"></label>
+      <label class="full">Models they handle<input name="models" value="${esc((e.models || []).join(', '))}" placeholder="e.g. Mia, Shamaya, Viki"></label>
+      <p class="full muted small">New terms apply to payroll weeks you haven't issued payslips for yet. Sales already recorded keep the net amount from the day they were entered. The signed offer letter isn't changed, so tell the ${esc(W.toLowerCase())} in writing.</p>
+      <div class="full macts"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="btn">Save terms</button></div>
+    </form>`);
+  $('#tmForm').onsubmit = ev => {
+    ev.preventDefault(); const f = fd(ev.target);
+    run(ev.target.querySelector('.btn'), async () => { await api('updateEmployeeTerms', Object.assign({ empId: empId }, f)); closeModal(); toast('Pay terms saved.'); go('employees'); });
+  };
+}
+
+async function paySettingsModal() {
+  const p = await api('getPaySettings');
+  openModal(`<h3>Pay settings</h3>
+    <form id="psForm" class="fgrid">
+      <label class="full">Pay cutoff<select name="period">
+        <option value="weekly" ${p.period === 'weekly' ? 'selected' : ''}>Weekly (Monday–Sunday)</option>
+        <option value="semimonthly" ${p.period === 'semimonthly' ? 'selected' : ''}>Twice a month (1st–15th and 16th–end)</option></select></label>
+      <p class="full muted small" style="margin:-4px 0 8px">Defaults for new ${esc(W.toLowerCase())}s. Each ${esc(W.toLowerCase())} can still have their own terms (Edit terms).</p>
+      <label>Hourly rate ($)<input name="hourlyRate" type="number" step="0.01" min="0" value="${p.hourlyRate}"></label>
+      <label>Commission (% of net)<input name="commissionPct" type="number" step="0.01" min="0" value="${+(p.commissionRate * 100).toFixed(2)}"></label>
+      <label>Fees / deductions (%)<input name="feePct" type="number" step="0.01" min="0" max="99" value="${+(p.feeRate * 100).toFixed(2)}"></label>
+      <label>${esc(W)} share (%)<input name="sharePct" type="number" step="1" min="1" max="100" value="${+(p.employeeShare * 100).toFixed(0)}"></label>
+      <p class="full muted small">Changing the cutoff updates payroll, expected salary and new offer letters. Payslips already issued don't change.</p>
+      <div class="full macts"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="btn">Save settings</button></div>
+    </form>`);
+  $('#psForm').onsubmit = e => {
+    e.preventDefault(); const f = fd(e.target);
+    run(e.target.querySelector('.btn'), async () => {
+      const ns = await api('savePaySettings', f);
+      applyBrand({ period: ns.period, hourlyRate: ns.hourlyRate, commissionRate: ns.commissionRate, feeRate: ns.feeRate, employeeShare: ns.employeeShare });
+      try { store.set('mz_brand', JSON.stringify(B)); } catch (x) {}
+      closeModal(); toast('Pay settings saved.'); S.payDate = ''; go('payroll');
+    });
+  };
+}
+
 function payslipModal(empId) {
   const e = S.pay.employees.find(x => x.empId === empId);
   openModal(`<h3>Payslip · ${esc(e.name)}</h3>
     <div class="muted small" style="margin-bottom:10px">${esc(S.pay.label)}</div>
     <div class="mrow"><span>Hours</span><b>${hm(e.hours)}</b></div>
-    <div class="mrow"><span>Sales</span><b>${money(e.sales)}</b></div>
+    <div class="mrow"><span>Gross sales</span><b>${money(e.sales)}</b></div>
+    <div class="mrow"><span>Net sales (after ${+(e.rates.fee * 100).toFixed(2)}% fees)</span><b>${money(e.netSales)}</b></div>
     <div class="mrow"><span>Total (100%)</span><b>${money(e.gross)}</b></div>
     <div class="mrow"><span>${esc(AGENCY)} share (${+(100 - e.rates.share * 100).toFixed(0)}%)</span><b>${money(e.agencyShare)}</b></div>
     <div class="mrow"><span>${esc(W)} salary (${+(e.rates.share * 100).toFixed(0)}%)</span><b class="gold-t">${money(e.employeePay)}</b></div>
