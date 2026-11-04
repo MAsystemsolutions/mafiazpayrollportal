@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mafiaz Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0d0f13; --panel:#151821; --panel2:#1b1f2a; --line:#262b38; --text:#eceef3; --muted:#8d95a6;
+  --gold:#d4a24c; --gold2:#f0c46d; --green:#3ecf8e; --red:#ef5b5b; --blue:#5aa9ff; --amber:#f5a524; --violet:#a78bfa;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:14px}
+a{color:var(--gold2)}
+button,input,select,textarea{font:inherit;color:inherit}
+.hidden{display:none!important}
+/* layout */
+.top{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);background:rgba(13,15,19,.9);position:sticky;top:0;z-index:20;backdrop-filter:blur(8px)}
+.brand{display:flex;gap:10px;align-items:center}
+.brand b{letter-spacing:3px;text-transform:uppercase;font-size:15px}
+.brand small{display:block;color:var(--muted);font-size:11px;letter-spacing:.5px}
+.logo{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-weight:800;color:#111;background:linear-gradient(135deg,var(--gold2),var(--gold))}
+.who{display:flex;gap:8px;align-items:center}
+.who span{color:var(--muted);margin-right:6px}
+.tabs{display:flex;gap:4px;padding:10px 16px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{background:none;border:0;padding:9px 14px;border-radius:10px;color:var(--muted);cursor:pointer;white-space:nowrap;font-weight:500;display:flex;gap:6px;align-items:center}
+.tabs button:hover{color:var(--text);background:var(--panel)}
+.tabs button.on{color:#111;background:var(--gold)}
+.badge:empty{display:none}
+.badge{background:var(--red);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;font-weight:700}
+main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px}
+.card h3{margin:0 0 14px;font-size:15px;display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;margin-bottom:16px}
+.grid2>.card{margin:0}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.stat .k{color:var(--muted);font-size:12px}
+.stat .v{font-size:22px;font-weight:700;margin-top:4px}
+.stat .s{color:var(--muted);font-size:12px;margin-top:2px}
+.stat.gold{border-color:rgba(212,162,76,.45);background:linear-gradient(160deg,rgba(212,162,76,.14),var(--panel))}
+.stat.gold .v{color:var(--gold2)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.toolbar h2{margin:0 auto 0 0;font-size:18px}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+/* forms */
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:10px}
+input,select,textarea{display:block;width:100%;margin-top:5px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+textarea{min-height:76px;resize:vertical}
+input[type=checkbox]{width:auto;display:inline-block;margin:0 8px 0 0;accent-color:var(--gold)}
+input::-webkit-calendar-picker-indicator{filter:invert(.7)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0 12px}
+.fgrid .full{grid-column:1/-1}
+.btn{background:var(--gold);color:#111;border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;justify-content:center}
+.btn:hover{background:var(--gold2)}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn.big{width:100%;padding:14px;font-size:15px;margin-top:6px}
+.btn.danger{background:var(--red);color:#fff}
+.btn.green{background:var(--green);color:#062b1b}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;color:var(--text)}
+.ghost:hover{border-color:var(--gold);color:var(--gold2)}
+.sm{padding:6px 10px;font-size:12px}
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);background:var(--panel2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+td.wrap{white-space:normal;min-width:200px}
+tr.tot td{font-weight:700;background:var(--panel2)}
+.gold-t{color:var(--gold2);font-weight:700}
+.empty{color:var(--muted);text-align:center;padding:26px}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--panel2);border:1px solid var(--line)}
+.st{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.st.on,.st.Approved{color:var(--green);background:rgba(62,207,142,.12)}
+.st.out{color:var(--blue);background:rgba(90,169,255,.12)}
+.st.off,.st.Pending{color:var(--amber);background:rgba(245,165,36,.12)}
+.st.none,.st.Denied,.st.High{color:var(--red);background:rgba(239,91,91,.12)}
+.st.Cancelled,.st.Inactive,.st.Low{color:var(--muted);background:rgba(141,149,166,.12)}
+.st.Medium{color:var(--amber);background:rgba(245,165,36,.12)}
+.st.Open{color:var(--red);background:rgba(239,91,91,.12)}
+.st.Monitoring{color:var(--violet);background:rgba(167,139,250,.12)}
+.st.Resolved,.st.Active{color:var(--green);background:rgba(62,207,142,.12)}
+/* clock */
+.clock{text-align:center;display:flex;flex-direction:column;justify-content:center;gap:8px}
+.clock.live{border-color:rgba(62,207,142,.45);background:linear-gradient(160deg,rgba(62,207,142,.1),var(--panel))}
+.clock form{text-align:left;margin-top:6px}
+.status{font-weight:700}
+.status.on{color:var(--green)}
+.status.off{color:var(--muted)}
+.timer{font-size:46px;font-weight:800;letter-spacing:1px;font-variant-numeric:tabular-nums}
+/* requests */
+.req{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--panel2);display:flex;gap:14px;justify-content:space-between;flex-wrap:wrap}
+.req .meta{color:var(--muted);font-size:12px;margin-top:4px}
+.req .reason{margin-top:8px}
+.req .acts{display:flex;gap:6px;align-items:flex-start}
+/* auth */
+.auth{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 20% 0%,rgba(212,162,76,.16),transparent 45%),var(--bg)}
+.auth-card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px}
+.auth-card .brand{margin-bottom:22px}
+.auth-card h2{margin:0 0 4px}
+.err{background:rgba(239,91,91,.12);color:#ffb3b3;border:1px solid rgba(239,91,91,.35);padding:10px 12px;border-radius:10px;margin-bottom:12px;font-size:13px}
+.onb{max-width:860px;margin:0 auto;padding:24px 16px 60px}
+.steps{display:flex;gap:8px;margin:0 0 16px;color:var(--muted);font-size:13px;flex-wrap:wrap}
+.steps span{padding:6px 12px;border-radius:99px;border:1px solid var(--line)}
+.steps span.on{background:var(--gold);color:#111;border-color:var(--gold);font-weight:700}
+.docbox{background:#fbfaf7;color:#1d1d1f;border-radius:12px;padding:30px;max-height:58vh;overflow:auto;line-height:1.6;font-size:13.5px}
+.docbox .doc-head{display:flex;justify-content:space-between;border-bottom:3px solid #b8892f;padding-bottom:10px;margin-bottom:16px}
+.docbox .doc-brand{font-size:22px;font-weight:800;letter-spacing:4px;text-transform:uppercase}
+.docbox .doc-date{color:#777;padding-top:8px}
+.docbox h1{font-size:19px;margin:0 0 12px}
+.docbox h2{font-size:14px;margin:16px 0 4px;color:#7a5a17}
+.docbox .ex{background:#f3ead6;padding:8px 12px;border-left:3px solid #b8892f;border-radius:4px}
+.docbox .sign-grid{display:flex;gap:30px;margin-top:26px;flex-wrap:wrap}
+.docbox .sign-grid>div{flex:1;min-width:200px}
+.docbox .sig{font-family:'Dancing Script',cursive;font-size:28px;color:#1b2a6b;min-height:40px}
+.docbox .agency-sig{font-family:Inter;font-size:14px;font-weight:700;color:#111;padding-top:14px}
+.docbox .sig-line{border-top:1px solid #333}
+.docbox .sig-cap{font-size:11px;color:#666;margin-top:4px}
+.sigprev{font-family:'Dancing Script',cursive;font-size:30px;color:var(--gold2);min-height:44px;border-bottom:1px solid var(--line);margin:4px 0 14px;padding:0 4px}
+.agree{display:flex;align-items:flex-start;color:var(--text);font-size:13px;margin:14px 0}
+/* modal & toast */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;z-index:50;padding:16px}
+.modal-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
+.modal-card h3{margin:0 0 14px}
+.mrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line)}
+.mrow b{font-variant-numeric:tabular-nums}
+.macts{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.t-item{background:#232836;border:1px solid var(--line);padding:11px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:90vw}
+.t-item.ok{border-color:rgba(62,207,142,.5)}
+.t-item.err{border-color:rgba(239,91,91,.6);color:#ffc4c4}
+.spin{width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading{display:grid;place-items:center;padding:60px;color:var(--muted)}
+.chart-box{position:relative;height:300px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{background:none;border:0;padding:7px 12px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--gold);color:#111;font-weight:700}
+.rule summary{cursor:pointer;list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rule summary::-webkit-details-marker{display:none}
+.rule summary::before{content:"▸";color:var(--gold);transition:transform .15s}
+.rule[open] summary::before{transform:rotate(90deg)}
+.rule-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px}
+.rule-step{display:flex;gap:10px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.rule-step .num{width:26px;height:26px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#111;font-weight:800;font-size:13px}
+.rule-ex{margin-top:12px;padding:12px 14px;border-radius:12px;border-left:3px solid var(--gold);background:rgba(212,162,76,.08);line-height:1.7}
+@media (max-width:820px){
+  .grid2{grid-template-columns:1fr}
+  .timer{font-size:38px}
+  .who span{display:none}
+  .top{padding:12px 16px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()"><div class="modal-card" id="modalBody"></div></div>
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   PASTE YOUR APPS SCRIPT WEB APP URL HERE (ends in /exec)
+   ============================================================ */
+const API_URL = 'https://script.google.com/macros/s/AKfycbyb8UMHiYOs9ZflwAoFM4HiLHTA5bZOkMpJtFRKIs1b8qGMF6sXlXxMhMLumcAzVC3F/exec';
+const AGENCY = 'Mafiaz';
+
+/* ---------------- state & helpers ---------------- */
+const S = { token: null, role: null, name: '', data: null, tab: null, charts: {}, emps: null, dashDate: '', payDate: '', reqFilter: 'Pending', days: 30, prefill: null };
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = n => '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const hm = h => { const t = Math.round((Number(h) || 0) * 60); return Math.floor(t / 60) + 'h ' + String(t % 60).padStart(2, '0') + 'm'; };
+const fd = f => Object.fromEntries(new FormData(f).entries());
+const loading = () => { $('#view').innerHTML = '<div class="loading"><span class="spin"></span></div>'; };
+const errBox = m => `<div class="card"><div class="err">${esc(m)}</div><button class="ghost" onclick="go(S.tab)">Try again</button></div>`;
+const stat = (k, v, s, cls) => `<div class="stat ${cls || ''}"><div class="k">${k}</div><div class="v">${v}</div>${s ? `<div class="s">${s}</div>` : ''}</div>`;
+const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
+async function api(action, payload) {
+  if (API_URL.indexOf('http') !== 0) throw new Error('API_URL is not set yet. Paste your Apps Script web app URL at the top of index.html.');
+  let res;
+  try {
+    res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action: action, token: S.token }, payload || {})) });
+  } catch (e) { throw new Error('Could not reach the server. Check your internet connection.'); }
+  const j = await res.json();
+  if (!j.ok) {
+    if (j.error === 'SESSION_EXPIRED') { logout(true); throw new Error('Your session expired. Please log in again.'); }
+    if (j.error === 'ONBOARDING_REQUIRED') { boot(); throw new Error('Please finish your onboarding first.'); }
+    throw new Error(j.error);
+  }
+  return j.data;
+}
+
+function toast(msg, type) {
+  const el = document.createElement('div');
+  el.className = 't-item ' + (type || 'ok');
+  el.textContent = msg;
+  $('#toast').appendChild(el);
+  setTimeout(() => el.remove(), 3800);
+}
+
+async function run(btn, fn) {
+  let label;
+  if (btn) { btn.disabled = true; label = btn.innerHTML; btn.innerHTML = '<span class="spin"></span>'; }
+  try { return await fn(); }
+  catch (e) { toast(e.message, 'err'); }
+  finally { if (btn && document.body.contains(btn)) { btn.disabled = false; btn.innerHTML = label; } }
+}
+
+function openModal(html) { $('#modalBody').innerHTML = html; $('#modal').classList.remove('hidden'); }
+function closeModal() { $('#modal').classList.add('hidden'); $('#modalBody').innerHTML = ''; }
+
+function downloadB64(f) {
+  const bin = atob(f.b64), arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([arr], { type: f.mime || 'application/pdf' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function clockStr(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return Math.floor(s / 3600) + ':' + String(Math.floor(s % 3600 / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+setInterval(() => {
+  document.querySelectorAll('[data-since]').forEach(el => { el.textContent = clockStr(Date.now() - Number(el.dataset.since)); });
+  document.querySelectorAll('[data-live]').forEach(el => { el.textContent = hm(Number(el.dataset.base || 0) + (Date.now() - Number(el.dataset.live)) / 3.6e6); });
+}, 1000);
+
+function chart(id, cfg) {
+  if (!window.Chart) return;
+  if (S.charts[id]) S.charts[id].destroy();
+  const el = document.getElementById(id);
+  if (el) S.charts[id] = new Chart(el, cfg);
+}
+if (window.Chart) {
+  Chart.defaults.color = '#8d95a6';
+  Chart.defaults.borderColor = 'rgba(255,255,255,.06)';
+  Chart.defaults.font.family = 'Inter';
+}
+const GOLD = '#d4a24c', TEAL = '#4fb3a9';
+
+/* ---------------- boot & auth ---------------- */
+async function boot() {
+  S.token = store.get('mz_token'); S.role = store.get('mz_role'); S.name = store.get('mz_name') || '';
+  if (!S.token) return renderLogin();
+  if (S.role === 'admin') return showAdmin();
+  try {
+    const me = await api('me');
+    S.name = me.Name;
+    if (!me.AgreementSigned) return renderAgreement();
+    if (me.MustChangePassword) return renderSetPassword();
+    showEmp();
+  } catch (e) { if (S.token) renderLogin(e.message); }
+}
+
+function renderLogin(msg) {
+  $('#app').innerHTML = `
+  <div class="auth"><div class="auth-card">
+    <div class="brand"><span class="logo">M</span><div><b>${AGENCY}</b><small>Payroll & Employee Portal</small></div></div>
+    <h2>Welcome back</h2><p class="muted" style="margin:0 0 18px">Log in with the email and password sent to you.</p>
+    ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
+    <form id="loginForm">
+      <label>Email<input name="email" type="email" autocomplete="username" required></label>
+      <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+      <button class="btn big">Log in</button>
+    </form>
+    <p class="muted small" style="margin-top:16px">Forgot your password? Ask your admin to resend your login.</p>
+  </div></div>`;
+  $('#loginForm').onsubmit = e => {
+    e.preventDefault();
+    const f = fd(e.target);
+    run(e.target.querySelector('button'), async () => {
+      const r = await api('login', { email: f.email, password: f.password });
+      S.token = r.token; S.role = r.role; S.name = r.name;
+      store.set('mz_token', r.token); store.set('mz_role', r.role); store.set('mz_name', r.name);
+      boot();
+    });
+  };
+}
+
+function logout(silent) {
+  if (S.token && !silent) api('logout').catch(() => {});
+  store.del('mz_token'); store.del('mz_role'); store.del('mz_name');
+  S.token = null; S.role = null; S.data = null; S.emps = null; S.tab = null;
+  renderLogin();
+}
+
+/* ---------------- onboarding ---------------- */
+async function renderAgreement() {
+  $('#app').innerHTML = `<div class="onb"><div class="brand" style="margin-bottom:18px"><span class="logo">M</span><div><b>${AGENCY}</b><small>Welcome aboard</small></div></div>
+    <div class="steps"><span class="on">1 · Sign offer letter</span><span>2 · Set password</span><span>3 · Start working</span></div>
+    <div id="agWrap" class="loading"><span class="spin"></span></div></div>`;
+  try {
+    const a = await api('getAgreement');
+    $('#agWrap').className = '';
+    $('#agWrap').innerHTML = `
+      <div class="card">
+        <div class="docbox">${a.html}</div>
+        <label class="agree"><input type="checkbox" id="agChk"> I have read and understood this offer letter, and I accept its terms.</label>
+        <label>Type your full name to sign (${esc(a.name)})<input id="agName" autocomplete="off" placeholder="${esc(a.name)}"></label>
+        <div class="sigprev" id="agPrev"></div>
+        <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap">
+          <button class="ghost" onclick="logout()">Log out</button>
+          <button class="btn" id="agBtn">Sign &amp; Accept</button>
+        </div>
+      </div>`;
+    $('#agName').oninput = e => { $('#agPrev').textContent = e.target.value; };
+    $('#agBtn').onclick = e => run(e.currentTarget, async () => {
+      await api('signAgreement', { agree: $('#agChk').checked, signedName: $('#agName').value });
+      toast('Offer letter signed. A copy was emailed to you.');
+      boot();
+    });
+  } catch (e) { $('#agWrap').innerHTML = errBox(e.message); }
+}
+
+function renderSetPassword() {
+  $('#app').innerHTML = `<div class="auth"><div class="auth-card">
+    <div class="brand"><span class="logo">M</span><div><b>${AGENCY}</b><small>Welcome aboard</small></div></div>
+    <div class="steps"><span>1 · Signed</span><span class="on">2 · Set password</span></div>
+    <h2>Create your password</h2><p class="muted" style="margin:0 0 16px">At least 8 characters. Don't share it with anyone.</p>
+    <form id="pwForm">
+      <label>New password<input name="p1" type="password" autocomplete="new-password" minlength="8" required></label>
+      <label>Confirm password<input name="p2" type="password" autocomplete="new-password" minlength="8" required></label>
+      <button class="btn big">Save and continue</button>
+    </form></div></div>`;
+  $('#pwForm').onsubmit = e => {
+    e.preventDefault();
+    const f = fd(e.target);
+    run(e.target.querySelector('button'), async () => {
+      if (f.p1 !== f.p2) throw new Error('Passwords do not match.');
+      await api('changePassword', { newPassword: f.p1 });
+      toast('Password saved. You are all set!');
+      boot();
+    });
+  };
+}
+
+/* ---------------- shell ---------------- */
+function shell(tabs, sub) {
+  $('#app').innerHTML = `
+  <header class="top">
+    <div class="brand"><span class="logo">M</span><div><b>${AGENCY}</b><small>${sub}</small></div></div>
+    <div class="who"><span>${esc(S.name)}</span><button class="ghost sm" onclick="openChangePw()">Password</button><button class="ghost sm" onclick="logout()">Log out</button></div>
+  </header>
+  <nav class="tabs" id="tabs">${tabs.map(t => `<button data-t="${t[0]}" onclick="go('${t[0]}')">${t[1]}<span class="badge" id="b_${t[0]}"></span></button>`).join('')}</nav>
+  <main id="view"></main>`;
+}
+function go(t) {
+  S.tab = t;
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  window.scrollTo(0, 0);
+  if (S.role === 'admin') ADMIN[t]();
+  else if (S.data) EMP[t](); else empRefresh();
+}
+function badge(t, n) { const el = document.getElementById('b_' + t); if (el) el.textContent = n > 0 ? n : ''; }
+
+function openChangePw() {
+  openModal(`<h3>Change password</h3><form id="cpForm">
+    <label>Current password<input name="cur" type="password" required></label>
+    <label>New password<input name="p1" type="password" minlength="8" required></label>
+    <label>Confirm new password<input name="p2" type="password" minlength="8" required></label>
+    <div class="macts"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="btn">Save</button></div></form>`);
+  $('#cpForm').onsubmit = e => {
+    e.preventDefault();
+    const f = fd(e.target);
+    run(e.target.querySelector('.btn'), async () => {
+      if (f.p1 !== f.p2) throw new Error('Passwords do not match.');
+      await api(S.role === 'admin' ? 'adminChangePassword' : 'changePassword', { currentPassword: f.cur, newPassword: f.p1 });
+      closeModal(); toast('Password changed.');
+    });
+  };
+}
+
+/* ============================================================
+   EMPLOYEE PORTAL
+   ============================================================ */
+function showEmp() {
+  shell([['today', 'Today'], ['week', 'My Week'], ['requests', 'Requests'], ['payslips', 'Payslips']], 'Employee Portal');
+  S.data = null;
+  go(S.tab && EMP[S.tab] ? S.tab : 'today');
+}
+async function empRefresh() {
+  if (!S.data) loading();
+  try { S.data = await api('empDashboard'); EMP[S.tab](); }
+  catch (e) { $('#view').innerHTML = errBox(e.message); }
+}
+
+const EMP = {
+  today() {
+    const d = S.data, o = d.openShift;
+    const accOpts = d.accounts.map(a => `<option value="${esc(a)}">`).join('');
+    $('#view').innerHTML = `
+    <datalist id="accs">${accOpts}</datalist>
+    <div class="grid2">
+      <div class="card clock ${o ? 'live' : ''}">
+        <div class="muted">${esc(d.todayLabel)}</div>
+        ${o ? `
+          <div class="status on">● On duty since ${esc(o.since)}</div>
+          <div class="timer" data-since="${o.clockInAt}">${clockStr(Date.now() - o.clockInAt)}</div>
+          <div class="muted">Account / model: <b style="color:var(--text)">${esc(o.account)}</b></div>
+          <button class="btn danger big" onclick="run(this,doClockOut)">Clock out</button>`
+        : `
+          <div class="status off">● Off duty</div>
+          <form id="ciForm">
+            <label>Account / model you're working on<input name="account" list="accs" required placeholder="e.g. account or model name"></label>
+            <button class="btn green big">Clock in</button>
+          </form>`}
+      </div>
+      <div class="stack">
+        ${stat('Hours today', o ? `<span data-live="${o.clockInAt}" data-base="${d.todayHours}">${hm(d.todayHours)}</span>` : hm(d.todayHours), o ? 'Includes current shift' : 'Completed shifts')}
+        ${stat('Sales today', money(d.todaySalesTotal), d.todaySalesCount + ' sale(s) recorded')}
+        ${stat('Expected salary this week', money(d.week.expectedPay), esc(d.week.label), 'gold')}
+      </div>
+    </div>
+
+    <div class="card"><h3>Add a sale</h3>
+      <form id="saleForm" class="fgrid">
+        <label>Customer name<input name="customer" required maxlength="120"></label>
+        <label>Amount (USD)<input name="amount" type="number" min="0.01" step="0.01" required></label>
+        <label>Account / model<input name="account" list="accs" value="${o ? esc(o.account) : ''}"></label>
+        <label class="full">Description<input name="description" maxlength="500" placeholder="What was sold"></label>
+        <div class="full"><button class="btn">Save sale</button></div>
+      </form>
+    </div>
+
+    <div class="card"><h3>Today's sales <span class="pill">${money(d.todaySalesTotal)}</span></h3>
+      <div class="tw"><table><thead><tr><th>Time</th><th>Customer</th><th>Description</th><th>Account</th><th class="n">Amount</th></tr></thead><tbody>
+      ${d.todaySales.length ? d.todaySales.map(s => `<tr><td>${esc(s.time)}</td><td>${esc(s.customer)}</td><td class="wrap">${esc(s.description)}</td><td>${esc(s.account)}</td><td class="n">${money(s.amount)}</td></tr>`).join('')
+        : '<tr><td colspan="5" class="empty">No sales yet today.</td></tr>'}
+      ${d.todaySales.length ? `<tr class="tot"><td colspan="4">Total</td><td class="n">${money(d.todaySalesTotal)}</td></tr>` : ''}
+      </tbody></table></div>
+    </div>
+
+    <div class="card"><h3>Today's shifts <span class="muted small">Forgot to clock in or out? Use "Fix time".</span></h3>
+      <div class="tw"><table><thead><tr><th>In</th><th>Out</th><th>Account</th><th class="n">Hours</th><th></th></tr></thead><tbody>
+      ${d.todayShifts.length ? d.todayShifts.map(s => `<tr><td>${esc(s.in)}</td><td>${s.open ? '<span class="st on">Running</span>' : esc(s.out)}</td><td>${esc(s.account)}${s.source === 'Edited' ? ' <span class="pill">edited</span>' : ''}</td><td class="n">${s.open ? '—' : hm(s.hours)}</td><td class="n"><button class="ghost sm" onclick="fixTime('${s.id}')">Fix time</button></td></tr>`).join('')
+        : '<tr><td colspan="5" class="empty">No shifts yet today.</td></tr>'}
+      </tbody></table></div>
+      <div style="margin-top:10px"><button class="ghost sm" onclick="fixTime('')">+ Add a missed shift</button></div>
+    </div>`;
+    const ci = $('#ciForm');
+    if (ci) ci.onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('clockIn', { account: f.account }); toast('Clocked in. Have a great shift!'); await empRefresh(); }); };
+    $('#saleForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('addSale', f); toast('Sale saved.'); await empRefresh(); }); };
+  },
+
+  week() {
+    const w = S.data.week;
+    $('#view').innerHTML = `
+    <div class="toolbar"><h2>This week</h2><span class="pill">${esc(w.label)}</span><button class="ghost sm" onclick="run(this,empRefresh)">Refresh</button></div>
+    <div class="stats">
+      ${stat('Hours this week', hm(w.hours))}
+      ${stat('Sales this week', money(w.sales))}
+      ${stat('Expected salary', money(w.expectedPay), 'Final amount is on your payslip', 'gold')}
+    </div>
+    <div class="card"><h3>Daily breakdown</h3>
+      <div class="tw"><table><thead><tr><th>Day</th><th class="n">Hours</th><th class="n">Sales #</th><th class="n">Sales</th></tr></thead><tbody>
+      ${w.days.map(x => `<tr><td>${esc(x.label)}${x.date === S.data.today ? ' <span class="pill">today</span>' : ''}</td><td class="n">${hm(x.hours)}</td><td class="n">${x.count}</td><td class="n">${money(x.sales)}</td></tr>`).join('')}
+      <tr class="tot"><td>Total</td><td class="n">${hm(w.hours)}</td><td class="n">${w.days.reduce((a, x) => a + x.count, 0)}</td><td class="n">${money(w.sales)}</td></tr>
+      </tbody></table></div>
+      <p class="muted small" style="margin-bottom:0">Expected salary is based on completed shifts and recorded sales. Pending time corrections are added once approved.</p>
+    </div>`;
+  },
+
+  requests() {
+    const d = S.data, pre = S.prefill; S.prefill = null;
+    const shiftOpts = d.recentShifts.filter(s => !s.open || true).map(s => `<option value="${s.id}" ${pre && pre.id === s.id ? 'selected' : ''}>${esc(s.label)} · ${esc(s.in)}–${s.open ? 'still running' : esc(s.out)} · ${esc(s.account)}</option>`).join('');
+    $('#view').innerHTML = `
+    <div class="grid2">
+      <div class="card"><h3>Time correction</h3>
+        <form id="teForm">
+          <label>Which shift?<select name="shiftId" id="teShift"><option value="">Missed shift — add a new one</option>${shiftOpts}</select></label>
+          <div class="fgrid">
+            <label>Clock in<input name="clockIn" id="teIn" type="datetime-local" required></label>
+            <label>Clock out<input name="clockOut" id="teOut" type="datetime-local" required></label>
+          </div>
+          <label>Account / model<input name="account" id="teAcc" list="accs2" required></label>
+          <label>Reason<textarea name="reason" required placeholder="e.g. Forgot to clock in, internet went down"></textarea></label>
+          <button class="btn">Send for approval</button>
+        </form>
+        <datalist id="accs2">${d.accounts.map(a => `<option value="${esc(a)}">`).join('')}</datalist>
+      </div>
+      <div class="card"><h3>Request a day off</h3>
+        <form id="doForm">
+          <div class="fgrid">
+            <label>From<input name="date" type="date" min="${d.today}" required></label>
+            <label>To<input name="endDate" type="date" min="${d.today}"></label>
+          </div>
+          <label>Type<select name="leaveType"><option>Day off</option><option>Sick</option><option>Emergency</option><option>Personal</option></select></label>
+          <label>Reason<textarea name="reason" required></textarea></label>
+          <button class="btn">Send request</button>
+        </form>
+      </div>
+    </div>
+    <div class="card"><h3>My requests</h3><div class="stack">
+      ${d.requests.length ? d.requests.map(r => reqCard(r, false)).join('') : '<div class="empty">No requests yet.</div>'}
+    </div></div>`;
+
+    const fill = id => {
+      const s = d.recentShifts.find(x => x.id === id);
+      $('#teIn').value = s ? s.inLocal : ''; $('#teOut').value = s ? s.outLocal : ''; $('#teAcc').value = s ? s.account : '';
+    };
+    $('#teShift').onchange = e => fill(e.target.value);
+    if (pre && pre.id) fill(pre.id);
+    $('#teForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('requestTimeEdit', f); toast('Sent to your admin for approval.'); await empRefresh(); }); };
+    $('#doForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('requestDayOff', f); toast('Day off request sent.'); await empRefresh(); }); };
+    if (pre) $('#teForm').scrollIntoView({ behavior: 'smooth' });
+  },
+
+  payslips() {
+    const p = S.data.payslips;
+    $('#view').innerHTML = `<div class="card"><h3>My payslips</h3>
+      <div class="tw"><table><thead><tr><th>Pay period</th><th class="n">Hours</th><th class="n">Net pay</th><th>Sent</th><th></th></tr></thead><tbody>
+      ${p.length ? p.map(x => `<tr><td>${esc(x.label)}</td><td class="n">${hm(x.hours)}</td><td class="n gold-t">${money(x.netPay)}</td><td>${esc(x.sentAt || '—')}</td><td class="n"><button class="ghost sm" onclick="run(this,()=>api('getPayslipPdf',{id:'${x.id}'}).then(downloadB64))">Download PDF</button></td></tr>`).join('')
+        : '<tr><td colspan="5" class="empty">No payslips yet. They appear here after each weekly payroll.</td></tr>'}
+      </tbody></table></div></div>`;
+  }
+};
+
+async function doClockOut() { await api('clockOut'); toast('Clocked out. Good work today!'); await empRefresh(); }
+function fixTime(id) { S.prefill = { id: id }; go('requests'); }
+
+function reqCard(r, admin) {
+  const title = r.type === 'TIME_EDIT'
+    ? `Time correction${r.shiftId ? '' : ' (missed shift)'} · ${esc(r.clockIn)} → ${esc(r.clockOut)} <span class="muted">(${hm(r.hours)})</span>`
+    : `${esc(r.leaveType || 'Day off')} · ${esc(r.dateLabel)}${r.endDate && r.endDate !== r.date ? ' → ' + esc(r.endLabel) : ''}`;
+  let acts = '';
+  if (r.status === 'Pending') {
+    acts = admin
+      ? `<button class="btn green sm" onclick="reviewReq('${r.id}','Approved')">Approve</button><button class="btn danger sm" onclick="reviewReq('${r.id}','Denied')">Deny</button>`
+      : `<button class="ghost sm" onclick="run(this,async()=>{await api('cancelRequest',{reqId:'${r.id}'});toast('Request cancelled.');await empRefresh();})">Cancel</button>`;
+  }
+  return `<div class="req"><div style="flex:1;min-width:240px">
+      <div>${admin ? `<b>${esc(r.name)}</b> · ` : ''}${title}</div>
+      <div class="meta">Sent ${esc(r.created)}${r.account ? ' · ' + esc(r.account) : ''}${r.reviewed ? ' · Reviewed ' + esc(r.reviewed) : ''}</div>
+      <div class="reason">${esc(r.reason)}</div>
+      ${r.adminNote ? `<div class="meta">Admin note: ${esc(r.adminNote)}</div>` : ''}
+    </div><div class="acts"><span class="st ${esc(r.status)}">${esc(r.status)}</span>${acts}</div></div>`;
+}
+
+/* ============================================================
+   ADMIN BOARD
+   ============================================================ */
+function showAdmin() {
+  shell([['dash', 'Dashboard'], ['payroll', 'Payroll'], ['requests', 'Requests'], ['employees', 'Employees'], ['kpi', 'KPI'], ['issues', 'Issues'], ['analytics', 'Analytics']], 'Admin Board');
+  go(S.tab && ADMIN[S.tab] ? S.tab : 'dash');
+}
+async function loadEmps(force) { if (!S.emps || force) S.emps = await api('listEmployees'); return S.emps; }
+const empOptions = (sel) => (S.emps || []).filter(e => e.status === 'Active').map(e => `<option value="${e.empId}" ${sel === e.empId ? 'selected' : ''}>${esc(e.name)}</option>`).join('');
+
+function payRuleCard() {
+  return `<details class="card rule" open>
+    <summary><b>How agent salary is computed</b> <span class="muted small">(every weekly cutoff, Mon–Sun, Philippine time)</span></summary>
+    <div class="rule-grid">
+      <div class="rule-step"><span class="num">1</span><div><b>Hourly pay</b><div class="muted">Total hours × $3</div></div></div>
+      <div class="rule-step"><span class="num">2</span><div><b>Commission</b><div class="muted">1% of total sales</div></div></div>
+      <div class="rule-step"><span class="num">3</span><div><b>Total (100%)</b><div class="muted">Hourly pay + commission</div></div></div>
+      <div class="rule-step"><span class="num">4</span><div><b>Split</b><div class="muted">70% goes to the agent · 30% goes to Mafiaz</div></div></div>
+    </div>
+    <div class="rule-ex">
+      <b>Example:</b> 40 hours and $5,000 in sales →
+      Hourly 40 × $3 = <b>$120</b> · Commission 1% × $5,000 = <b>$50</b> · Total <b>$170</b> →
+      Agent salary (70%) <b class="gold-t">$119</b> · Mafiaz cut (30%) <b class="gold-t">$51</b>
+    </div>
+    <p class="muted small" style="margin:10px 0 0">Agents only see their 70% salary in their portal and on their payslip. If an agent has a different rate, it shows under their name in the table.</p>
+  </details>`;
+}
+
+const STATUS_CLS = { 'On duty': 'on', 'Logged out': 'out', 'Day off': 'off', 'Not on duty': 'none', 'Absent': 'none' };
+
+const ADMIN = {
+  async dash() {
+    loading();
+    try {
+      const d = await api('adminOverview', { date: S.dashDate || '' });
+      S.dashDate = d.date; const t = d.totals;
+      badge('requests', t.pending);
+      $('#view').innerHTML = `
+      <div class="toolbar"><h2>${d.isToday ? 'Today' : esc(d.dateLabel)}</h2>
+        <input type="date" id="dashDate" value="${d.date}" style="width:auto;margin:0">
+        <button class="ghost sm" onclick="S.dashDate='';go('dash')">Today</button>
+        <button class="ghost sm" onclick="go('dash')">Refresh</button></div>
+      <div class="stats">
+        ${stat('On duty', t.onDuty, 'Clocked in now')}
+        ${stat('Not on duty', t.notOnDuty, 'Out, absent or day off')}
+        ${stat('Hours (' + (d.isToday ? 'today' : 'day') + ')', hm(t.dayHours))}
+        ${stat('Sales (' + (d.isToday ? 'today' : 'day') + ')', money(t.daySales))}
+        ${stat('Week hours', hm(t.weekHours), esc(d.weekLabel))}
+        ${stat('Week sales', money(t.weekSales), esc(d.weekLabel))}
+        ${stat('Week total (100%)', money(t.weekGross), 'Hourly + commission', 'gold')}
+        ${stat('Employees\u2019 salary (70%)', money(t.weekPay), 'This week so far')}
+        ${stat('Agency share (30%)', money(t.weekAgency), 'This week so far', 'gold')}
+      </div>
+      ${t.pending ? `<div class="card" style="border-color:rgba(245,165,36,.45)"><b>${t.pending} pending request(s)</b> <span class="muted">waiting for your approval.</span> <button class="ghost sm" onclick="S.reqFilter='Pending';go('requests')">Review</button></div>` : ''}
+      <div class="card"><h3>Employees · ${esc(d.dateLabel)}</h3>
+        <div class="tw"><table><thead><tr><th>Employee</th><th>Status</th><th>Shift</th><th>Account</th><th class="n">Hours</th><th class="n">Sales</th><th class="n">Week hrs</th><th class="n">Week sales</th><th class="n">Week salary</th><th></th></tr></thead><tbody>
+        ${d.employees.length ? d.employees.map(e => `<tr>
+          <td><b>${esc(e.name)}</b><div class="muted small">${esc(e.position || '')}</div></td>
+          <td><span class="st ${STATUS_CLS[e.status] || 'none'}">${esc(e.status)}</span></td>
+          <td>${e.clockInAt ? `since ${esc(e.since)} · <span data-since="${e.clockInAt}">${clockStr(Date.now() - e.clockInAt)}</span>` : '<span class="muted">—</span>'}</td>
+          <td>${esc(e.account || '—')}</td>
+          <td class="n">${hm(e.hours)}</td><td class="n">${money(e.sales)}</td>
+          <td class="n">${hm(e.weekHours)}</td><td class="n">${money(e.weekSales)}</td><td class="n gold-t">${money(e.weekPay)}</td>
+          <td class="n">${e.clockInAt ? `<button class="ghost sm" onclick="adminClockOut('${e.empId}','${esc(e.name).replace(/'/g, '')}')">Clock out</button>` : ''}</td></tr>`).join('')
+          : '<tr><td colspan="10" class="empty">No employees yet. Add one in the Employees tab.</td></tr>'}
+        </tbody></table></div>
+      </div>
+      <div class="card"><h3>Last 14 days</h3><div class="chart-box"><canvas id="dashChart"></canvas></div></div>`;
+      $('#dashDate').onchange = e => { S.dashDate = e.target.value; go('dash'); };
+      chart('dashChart', {
+        data: { labels: d.chart.map(x => x.label), datasets: [
+          { type: 'bar', label: 'Sales ($)', data: d.chart.map(x => x.sales), backgroundColor: GOLD, borderRadius: 6, yAxisID: 'y' },
+          { type: 'line', label: 'Hours', data: d.chart.map(x => x.hours), borderColor: TEAL, backgroundColor: TEAL, tension: .35, yAxisID: 'y1' }] },
+        options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+          scales: { y: { beginAtZero: true, title: { display: true, text: 'Sales' } }, y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Hours' } } } }
+      });
+    } catch (e) { $('#view').innerHTML = errBox(e.message); }
+  },
+
+  async payroll() {
+    loading();
+    try {
+      const d = await api('weeklyPayroll', { date: S.payDate || '' });
+      S.payDate = d.weekStart; S.pay = d; const t = d.totals;
+      $('#view').innerHTML = `
+      <div class="toolbar"><h2>Weekly payroll</h2>
+        <button class="ghost sm" onclick="shiftWeek(-7)">‹ Prev</button>
+        <span class="pill">${esc(d.label)}</span>
+        <button class="ghost sm" onclick="shiftWeek(7)">Next ›</button>
+        <input type="date" id="payDate" value="${d.weekStart}" style="width:auto;margin:0"></div>
+      ${payRuleCard()}
+      <div class="stats">
+        ${stat('Total hours', hm(t.hours))}
+        ${stat('Total sales', money(t.sales))}
+        ${stat('Total (100%)', money(t.gross), money(t.hourlyPay) + ' hourly + ' + money(t.commission) + ' commission', 'gold')}
+        ${stat('Employees\u2019 salary (70%)', money(t.employeePay))}
+        ${stat('Agency share (30%)', money(t.agencyShare), '', 'gold')}
+      </div>
+      <div class="card"><h3>Breakdown <span class="muted small">Total = hours × rate + sales × commission · Salary = total × employee share</span></h3>
+        <div class="tw"><table><thead><tr><th>Employee</th><th class="n">Hours</th><th class="n">Sales</th><th class="n">Hourly</th><th class="n">Commission</th><th class="n">Total (100%)</th><th class="n">Employee salary</th><th class="n">Agency share</th><th>Payslip</th></tr></thead><tbody>
+        ${d.employees.length ? d.employees.map(e => `<tr>
+          <td><b>${esc(e.name)}</b>${e.status !== 'Active' ? ' <span class="st Inactive">Inactive</span>' : ''}<div class="muted small">$${e.rates.rate}/h · ${+(e.rates.comm * 100).toFixed(2)}% · ${+(e.rates.share * 100).toFixed(0)}/${+(100 - e.rates.share * 100).toFixed(0)}</div></td>
+          <td class="n">${hm(e.hours)}</td><td class="n">${money(e.sales)}</td><td class="n">${money(e.hourlyPay)}</td><td class="n">${money(e.commission)}</td>
+          <td class="n"><b>${money(e.gross)}</b></td><td class="n gold-t">${money(e.employeePay)}</td><td class="n">${money(e.agencyShare)}</td>
+          <td>${e.payslip ? `<span class="st Approved">Sent</span> <span class="muted small">${esc(e.payslip.sentAt)}</span><br><button class="ghost sm" onclick="run(this,()=>api('adminPayslipPdf',{id:'${e.payslip.id}'}).then(downloadB64))">PDF</button> <button class="ghost sm" onclick="payslipModal('${e.empId}')">Redo</button>`
+            : `<button class="btn sm" onclick="payslipModal('${e.empId}')">Generate</button>`}</td></tr>`).join('')
+          : '<tr><td colspan="9" class="empty">No employees.</td></tr>'}
+        ${d.employees.length ? `<tr class="tot"><td>Total</td><td class="n">${hm(t.hours)}</td><td class="n">${money(t.sales)}</td><td class="n">${money(t.hourlyPay)}</td><td class="n">${money(t.commission)}</td><td class="n">${money(t.gross)}</td><td class="n">${money(t.employeePay)}</td><td class="n">${money(t.agencyShare)}</td><td></td></tr>` : ''}
+        </tbody></table></div>
+      </div>`;
+      $('#payDate').onchange = e => { S.payDate = e.target.value; go('payroll'); };
+    } catch (e) { $('#view').innerHTML = errBox(e.message); }
+  },
+
+  async requests() {
+    loading();
+    try {
+      const list = await api('listRequests', { status: S.reqFilter });
+      if (S.reqFilter === 'Pending') badge('requests', list.length);
+      const f = ['Pending', 'Approved', 'Denied', 'All'];
+      $('#view').innerHTML = `
+      <div class="toolbar"><h2>Requests</h2><div class="seg">${f.map(x => `<button class="${S.reqFilter === x ? 'on' : ''}" onclick="S.reqFilter='${x}';go('requests')">${x}</button>`).join('')}</div></div>
+      <div class="card"><div class="stack">${list.length ? list.map(r => reqCard(r, true)).join('') : '<div class="empty">Nothing here.</div>'}</div></div>`;
+    } catch (e) { $('#view').innerHTML = errBox(e.message); }
+  },
+
+  async employees() {
+    loading();
+    try {
+      const list = await loadEmps(true);
+      $('#view').innerHTML = `
+      <div class="toolbar"><h2>Employees</h2><button class="btn" onclick="addEmpModal()">+ Add employee</button></div>
+      <div class="card"><div class="tw"><table><thead><tr><th>Employee</th><th>Position</th><th>Pay terms</th><th>Offer letter</th><th>Login</th><th>Status</th><th></th></tr></thead><tbody>
+      ${list.length ? list.map(e => `<tr>
+        <td><b>${esc(e.name)}</b><div class="muted small">${esc(e.email)}</div></td>
+        <td>${esc(e.position)}<div class="muted small">Start ${esc(e.startDate)}</div></td>
+        <td>$${e.rates.rate}/h + ${+(e.rates.comm * 100).toFixed(2)}%<div class="muted small">${+(e.rates.share * 100).toFixed(0)}% employee / ${+(100 - e.rates.share * 100).toFixed(0)}% agency</div></td>
+        <td>${e.agreementSigned ? `<span class="st Approved">Signed</span><div class="muted small">${esc(e.signedAt)}${e.agreementUrl ? ` · <a href="${esc(e.agreementUrl)}" target="_blank" rel="noopener">View</a>` : ''}</div>` : '<span class="st Pending">Waiting</span>'}</td>
+        <td>${e.passwordSet ? '<span class="st Active">Active</span>' : '<span class="st Pending">Invite sent</span>'}</td>
+        <td><span class="st ${e.status}">${e.status}</span>${e.onDuty ? ' <span class="st on">On duty</span>' : ''}</td>
+        <td class="n">
+          <button class="ghost sm" onclick="run(this,async()=>{await api('resendInvite',{empId:'${e.empId}'});toast('New login sent to ${esc(e.email)}');go('employees')})">Resend login</button>
+          ${e.sheetUrl ? `<a class="ghost sm" style="text-decoration:none;display:inline-block" href="${esc(e.sheetUrl)}" target="_blank" rel="noopener">Sheet</a>` : ''}
+          <button class="ghost sm" onclick="run(this,async()=>{await api('setEmployeeStatus',{empId:'${e.empId}',status:'${e.status === 'Active' ? 'Inactive' : 'Active'}'});toast('Updated.');go('employees')})">${e.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
+        </td></tr>`).join('') : '<tr><td colspan="7" class="empty">No employees yet. Click "Add employee" to send the first login.</td></tr>'}
+      </tbody></table></div></div>`;
+    } catch (e) { $('#view').innerHTML = errBox(e.message); }
+  },
+
+  async kpi() {
+    loading();
+    try {
+      await loadEmps();
+      const list = await api('listKpi');
+      $('#view').innerHTML = `
+      <div class="card"><h3>Record a KPI</h3>
+        <form id="kpiForm" class="fgrid">
+          <label>Employee<select name="empId" required><option value="">Select…</option>${empOptions()}</select></label>
+          <label>Date<input name="date" type="date" value="${todayISO()}" required></label>
+          <label>KPI / metric<input name="metric" list="kpiList" required placeholder="e.g. Weekly sales"></label>
+          <label>Target<input name="target" type="number" step="any"></label>
+          <label>Actual<input name="actual" type="number" step="any"></label>
+          <label class="full">Notes<input name="notes" maxlength="500"></label>
+          <div class="full"><button class="btn">Save KPI</button></div>
+        </form>
+        <datalist id="kpiList"><option value="Weekly sales"><option value="Hours worked"><option value="Response time (mins)"><option value="Conversion rate (%)"><option value="Sales per hour"><option value="Attendance (%)"></datalist>
+      </div>
+      <div class="card"><h3>KPI records</h3><div class="tw"><table><thead><tr><th>Date</th><th>Employee</th><th>KPI</th><th class="n">Target</th><th class="n">Actual</th><th class="n">Achieved</th><th>Notes</th><th></th></tr></thead><tbody>
+      ${list.length ? list.map(k => { const p = k.target ? Math.round(k.actual / k.target * 100) : null; return `<tr>
+        <td>${esc(k.date)}</td><td>${esc(k.name)}</td><td>${esc(k.metric)}</td><td class="n">${k.target}</td><td class="n">${k.actual}</td>
+        <td class="n">${p == null ? '—' : `<span class="st ${p >= 100 ? 'on' : p >= 80 ? 'off' : 'none'}">${p}%</span>`}</td>
+        <td class="wrap">${esc(k.notes)}</td>
+        <td class="n"><button class="ghost sm" onclick="if(confirm('Delete this KPI record?'))run(this,async()=>{await api('deleteKpi',{id:'${k.id}'});go('kpi')})">Delete</button></td></tr>`; }).join('')
+        : '<tr><td colspan="8" class="empty">No KPI records yet.</td></tr>'}
+      </tbody></table></div></div>`;
+      $('#kpiForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('addKpi', f); toast('KPI saved.'); go('kpi'); }); };
+    } catch (e) { $('#view').innerHTML = errBox(e.message); }
+  },
+
+  async issues() {
+    loading();
+    try {
+      await loadEmps();
+      const list = await api('listIssues');
+      const cats = ['Attendance', 'Tardiness', 'Missed clock-in/out', 'Sales report', 'Conduct', 'Customer complaint', 'Policy violation', 'Account security', 'Other'];
+      const sts = ['Open', 'Monitoring', 'Resolved'];
+      $('#view').innerHTML = `
+      <div class="card"><h3>Record an issue</h3>
+        <form id="issForm" class="fgrid">
+          <label>Employee<select name="empId" required><option value="">Select…</option>${empOptions()}</select></label>
+          <label>Date<input name="date" type="date" value="${todayISO()}" required></label>
+          <label>Category<select name="category">${cats.map(c => `<option>${c}</option>`).join('')}</select></label>
+          <label>Severity<select name="severity"><option>Low</option><option>Medium</option><option>High</option></select></label>
+          <label class="full">What happened<textarea name="description" required></textarea></label>
+          <label class="full">Action taken<input name="actionTaken" placeholder="e.g. Verbal warning, coaching session"></label>
+          <label>Status<select name="status">${sts.map(s => `<option>${s}</option>`).join('')}</select></label>
+          <div class="full"><button class="btn">Save issue</button></div>
+        </form>
+      </div>
+      <div class="card"><h3>Issue log <span class="pill">${list.filter(i => i.status !== 'Resolved').length} open</span></h3>
+        <div class="tw"><table><thead><tr><th>Date</th><th>Employee</th><th>Category</th><th>Severity</th><th>Details</th><th>Action taken</th><th>Status</th></tr></thead><tbody>
+        ${list.length ? list.map(i => `<tr>
+          <td>${esc(i.date)}</td><td>${esc(i.name)}</td><td>${esc(i.category)}</td><td><span class="st ${esc(i.severity)}">${esc(i.severity)}</span></td>
+          <td class="wrap">${esc(i.description)}</td><td class="wrap">${esc(i.actionTaken || '—')}</td>
+          <td><select onchange="updIssue('${i.id}',this)" style="margin:0;padding:6px 8px;width:auto">${sts.map(s => `<option ${s === i.status ? 'selected' : ''}>${s}</option>`).join('')}</select></td></tr>`).join('')
+          : '<tr><td colspan="7" class="empty">No issues recorded.</td></tr>'}
+        </tbody></table></div>
+      </div>`;
+      $('#issForm').onsubmit = e => { e.preventDefault(); const f = fd(e.target); run(e.target.querySelector('button'), async () => { await api('addIssue', f); toast('Issue recorded.'); go('issues'); }); };
+    } catch (e) { $('#view').innerHTML = errBox(e.message); }
+  },
+
+  async analytics() {
+    loading();
+    try {
+      const d = await api('analytics', { days: S.days });
+      const tot = d.perEmp.reduce((a, x) => { a.h += x.hours; a.s += x.sales; a.g += x.gross; a.a += x.agencyShare; return a; }, { h: 0, s: 0, g: 0, a: 0 });
+      $('#view').innerHTML = `
+      <div class="toolbar"><h2>Analytics</h2><span class="pill">${esc(d.rangeLabel)}</span>
+        <div class="seg">${[7, 30, 90].map(n => `<button class="${S.days === n ? 'on' : ''}" onclick="S.days=${n};go('analytics')">${n} days</button>`).join('')}</div></div>
+      <div class="stats">
+        ${stat('Hours', hm(tot.h))}${stat('Sales', money(tot.s))}
+        ${stat('Sales per hour', money(tot.h ? tot.s / tot.h : 0))}
+        ${stat('Total (100%)', money(tot.g), '', 'gold')}${stat('Agency share', money(tot.a), '', 'gold')}
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Daily sales</h3><div class="chart-box"><canvas id="cSales"></canvas></div></div>
+        <div class="card"><h3>Daily hours</h3><div class="chart-box"><canvas id="cHours"></canvas></div></div>
+      </div>
+      <div class="card"><h3>Sales by employee</h3><div class="chart-box" style="height:${Math.max(220, d.perEmp.length * 38)}px"><canvas id="cEmp"></canvas></div></div>
+      <div class="card"><h3>Employee performance</h3><div class="tw"><table><thead><tr><th>Employee</th><th class="n">Days worked</th><th class="n">Hours</th><th class="n">Sales #</th><th class="n">Sales</th><th class="n">Sales / hour</th><th class="n">Total (100%)</th><th class="n">Employee salary</th><th class="n">Agency share</th></tr></thead><tbody>
+      ${d.perEmp.length ? d.perEmp.map(x => `<tr><td>${esc(x.name)}</td><td class="n">${x.daysWorked}</td><td class="n">${hm(x.hours)}</td><td class="n">${x.count}</td><td class="n">${money(x.sales)}</td><td class="n">${money(x.salesPerHour)}</td><td class="n">${money(x.gross)}</td><td class="n gold-t">${money(x.employeePay)}</td><td class="n">${money(x.agencyShare)}</td></tr>`).join('')
+        : '<tr><td colspan="9" class="empty">No data yet.</td></tr>'}
+      </tbody></table></div></div>`;
+      const opts = { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } };
+      chart('cSales', { type: 'bar', data: { labels: d.series.map(x => x.label), datasets: [{ data: d.series.map(x => x.sales), backgroundColor: GOLD, borderRadius: 5 }] }, options: opts });
+      chart('cHours', { type: 'line', data: { labels: d.series.map(x => x.label), datasets: [{ data: d.series.map(x => x.hours), borderColor: TEAL, backgroundColor: 'rgba(79,179,169,.15)', fill: true, tension: .35 }] }, options: opts });
+      chart('cEmp', { type: 'bar', data: { labels: d.perEmp.map(x => x.name), datasets: [{ data: d.perEmp.map(x => x.sales), backgroundColor: GOLD, borderRadius: 5 }] }, options: { maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } } });
+    } catch (e) { $('#view').innerHTML = errBox(e.message); }
+  }
+};
+
+/* ---------------- admin actions ---------------- */
+function shiftWeek(n) {
+  const p = (S.payDate || todayISO()).split('-').map(Number);
+  const d = new Date(Date.UTC(p[0], p[1] - 1, p[2] + n));
+  S.payDate = d.toISOString().slice(0, 10);
+  go('payroll');
+}
+
+function adminClockOut(id, name) {
+  if (!confirm('Clock out ' + name + ' now?')) return;
+  run(null, async () => { await api('adminClockOut', { empId: id }); toast(name + ' clocked out.'); go('dash'); });
+}
+
+function reviewReq(id, decision) {
+  openModal(`<h3>${decision === 'Approved' ? 'Approve' : 'Deny'} request</h3>
+    <label>Note to employee (optional)<textarea id="rvNote" placeholder="${decision === 'Denied' ? 'Let them know why' : 'Optional'}"></textarea></label>
+    <div class="macts"><button class="ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn ${decision === 'Approved' ? 'green' : 'danger'}" id="rvBtn">${decision === 'Approved' ? 'Approve' : 'Deny'}</button></div>`);
+  $('#rvBtn').onclick = e => run(e.currentTarget, async () => {
+    await api('reviewRequest', { reqId: id, decision: decision, note: $('#rvNote').value });
+    closeModal(); toast('Request ' + decision.toLowerCase() + '. Employee notified.'); go('requests');
+  });
+}
+
+function updIssue(id, sel) { run(null, async () => { await api('updateIssue', { id: id, status: sel.value }); toast('Issue updated.'); }); }
+
+function addEmpModal() {
+  openModal(`<h3>Add employee</h3>
+    <p class="muted small" style="margin-top:-6px">They'll get an email with their login. On first login they sign the offer letter, then set their own password.</p>
+    <form id="aeForm" class="fgrid">
+      <label class="full">Full name<input name="name" required maxlength="100"></label>
+      <label class="full">Email<input name="email" type="email" required></label>
+      <label>Position<input name="position" value="Agent"></label>
+      <label>Start date<input name="startDate" type="date" value="${todayISO()}"></label>
+      <label>Hourly rate ($)<input name="hourlyRate" type="number" step="0.01" min="0" value="3"></label>
+      <label>Commission (%)<input name="commissionPct" type="number" step="0.01" min="0" value="1"></label>
+      <label>Employee share (%)<input name="sharePct" type="number" step="1" min="1" max="100" value="70"></label>
+      <div class="full macts"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="btn">Add &amp; send login</button></div>
+    </form>`);
+  $('#aeForm').onsubmit = e => {
+    e.preventDefault();
+    const f = fd(e.target);
+    run(e.target.querySelector('.btn'), async () => {
+      await api('addEmployee', f);
+      closeModal(); toast('Employee added. Login sent to ' + f.email); go('employees');
+    });
+  };
+}
+
+function payslipModal(empId) {
+  const e = S.pay.employees.find(x => x.empId === empId);
+  openModal(`<h3>Payslip · ${esc(e.name)}</h3>
+    <div class="muted small" style="margin-bottom:10px">${esc(S.pay.label)}</div>
+    <div class="mrow"><span>Hours</span><b>${hm(e.hours)}</b></div>
+    <div class="mrow"><span>Sales</span><b>${money(e.sales)}</b></div>
+    <div class="mrow"><span>Total (100%)</span><b>${money(e.gross)}</b></div>
+    <div class="mrow"><span>Agency share (${+(100 - e.rates.share * 100).toFixed(0)}%)</span><b>${money(e.agencyShare)}</b></div>
+    <div class="mrow"><span>Employee salary (${+(e.rates.share * 100).toFixed(0)}%)</span><b class="gold-t">${money(e.employeePay)}</b></div>
+    <div class="fgrid" style="margin-top:14px">
+      <label>Bonus / deduction ($)<input id="psAdj" type="number" step="0.01" value="0" placeholder="use minus for deduction"></label>
+      <label>Reason<input id="psNote" maxlength="200" placeholder="optional"></label>
+    </div>
+    <div class="mrow" style="border:0"><span><b>Net pay on payslip</b></span><b class="gold-t" id="psNet">${money(e.employeePay)}</b></div>
+    <label class="agree"><input type="checkbox" id="psSend" checked> Email the payslip PDF to ${esc(e.name)}</label>
+    <p class="muted small">The payslip only shows the employee's share — the 100% total and agency share stay on your side.</p>
+    <div class="macts"><button class="ghost" onclick="closeModal()">Cancel</button><button class="btn" id="psBtn">Generate payslip</button></div>`);
+  $('#psAdj').oninput = ev => { $('#psNet').textContent = money(e.employeePay + (Number(ev.target.value) || 0)); };
+  $('#psBtn').onclick = ev => run(ev.currentTarget, async () => {
+    const r = await api('generatePayslip', { empId: empId, date: S.pay.weekStart, adjustment: $('#psAdj').value, adjustmentNote: $('#psNote').value, send: $('#psSend').checked });
+    closeModal(); toast(r.sent ? 'Payslip generated and emailed.' : 'Payslip generated.'); go('payroll');
+  });
+}
+
+boot();
+</script>
+</body>
+</html>
